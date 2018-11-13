@@ -22,13 +22,12 @@
  *@ function:
  */
 
-
-int add_arp_table(FILE *infp,struct arp_table *parp,struct list_head *sarp_head) {
+int add_arp_table(FILE *infp, struct arp_table *parp, struct list_head *head) {
 
 	fscanf(infp, "%s%s%s%s", parp->str_vrf, parp->str_ip, parp->str_mac,
 			parp->str_vid);
 
-	list_add_tail(&parp->list, sarp_head);
+	list_add_tail(&parp->list, head);
 
 	return APP_SUCC;
 }

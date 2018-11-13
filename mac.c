@@ -23,10 +23,15 @@
  *
  *
  */
-int add_mac_table(FILE *infp,struct mac_table *pmac,struct list_head *smac_head) {
 
-	fscanf(infp, "%s%s%s", pmac->str_vid, pmac->str_mac,
-			pmac->str_interface);
-	list_add_tail(&pmac->list, smac_head);
+#include "list.h"
+#include <stdio.h>
+
+int add_mac_table(FILE *infp, struct mac_table *pmac, struct list_head *head) {
+
+	fscanf(infp, "%s%s%s", pmac->str_vid, pmac->str_mac, pmac->str_interface);
+
+	list_add_tail(&pmac->list, head);
+
 	return APP_SUCC;
 }
