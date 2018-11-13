@@ -15,5 +15,11 @@ struct arp_table {
 
 int add_arp_table(FILE *infp,struct arp_table *parp,struct list_head *sarp_head);
 
+
+
+
+
+
+
 /* body of arp.h */
 #endif /* _ARP_H_ */
