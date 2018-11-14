@@ -14,8 +14,7 @@ struct arp_table {
 	struct list_head list;
 };
 
-int add_arp_table(FILE *infp, struct table_node *pnode);
-
+int add_arp_table(FILE *infp, struct arp_node *parp_node);
 
 /* body of arp.h */
 #endif /* _ARP_H_ */

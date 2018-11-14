@@ -12,13 +12,12 @@
 
 #include "list.h"
 #include "mac.h"
-#include "main.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 /**
- * @int add_mac_table (FILE *fp,int index,struct mac_table *arp);
+ * @int add_mac_table (FILE *fp,int index,struct mac_table *mac);
  * @fun
  *
  *
@@ -27,11 +26,22 @@
 #include "list.h"
 #include <stdio.h>
 
-int add_mac_table(FILE *infp, struct mac_table *pmac, struct list_head *head) {
+int add_mac_table(FILE *infp, struct mac_node *pmac_node) {
 
-	fscanf(infp, "%s%s%s", pmac->str_vid, pmac->str_mac, pmac->str_interface);
+	struct mac_table *p = pmac_node->node;
+	p = (struct mac_table *)malloc(sizeof(struct mac_table));
+	ASSERT(p);
 
-	list_add_tail(&pmac->list, head);
+	fscanf(infp, "%s%s%s", p->str_vid,
+			p->str_mac, p->str_interface);
+
+	list_add_tail(&p->list,&pmac_node->head);
+
+	list_for_each(pmac_node->pos,&pmac_node->head){
+		p = list_entry(pmac_node->pos,struct mac_table,list);
+		printf("%s %s %s\n", p->str_vid,
+				p->str_mac, p->str_interface);
+	}
 
 	return APP_SUCC;
 }

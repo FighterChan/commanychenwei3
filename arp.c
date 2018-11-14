@@ -21,30 +21,25 @@
  *@ function:
  */
 
-int add_arp_table(FILE *infp, struct table_node *pnode) {
+int add_arp_table(FILE *infp, struct arp_node *parp_node) {
 
-	pnode->parp = (struct arp_node *) malloc(sizeof(struct arp_node));
-	ASSERT(pnode->parp);
 
-	memset(&pnode->parp->head, 0, sizeof(struct list_head));
+	struct arp_table *p = parp_node->node;
+	p = (struct arp_table *)malloc(sizeof(struct arp_table));
+	ASSERT(p);
 
-	INIT_LIST_HEAD(&pnode->parp->head);
+	fscanf(infp, "%s%s%s%s", p->str_vrf,
+			p->str_ip, p->str_mac,
+			p->str_vid);
 
-	pnode->parp->node = (struct arp_table *)malloc(sizeof(struct arp_table));
-	ASSERT(pnode->parp->node);
+	list_add_tail(&p->list,&parp_node->head);
 
-	fscanf(infp, "%s%s%s%s", pnode->parp->node->str_vrf,
-			pnode->parp->node->str_ip, pnode->parp->node->str_mac,
-			pnode->parp->node->str_vid);
-
-	list_add_tail(&pnode->parp->node->list,&pnode->parp->head);
-
-	list_for_each(pnode->parp->pos,&pnode->parp->head){
-		pnode->parp->node = list_entry(pnode->parp->pos,struct arp_table,list);
-		printf("%s %s %s %s\n", pnode->parp->node->str_vrf,
-				pnode->parp->node->str_ip, pnode->parp->node->str_mac,
-				pnode->parp->node->str_vid);
-	}
+//	list_for_each(parp_node->pos,&parp_node->head){
+//		p = list_entry(parp_node->pos,struct arp_table,list);
+//		printf("%s %s %s %s\n", p->str_vrf,
+//				p->str_ip, p->str_mac,
+//				p->str_vid);
+//	}
 
 	return APP_SUCC;
 }

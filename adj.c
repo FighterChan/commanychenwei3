@@ -12,12 +12,12 @@
 #include "list.h"
 #include <stdio.h>
 
-int add_adj_table(FILE *infp, struct adj_table *padj, struct list_head *head) {
+int add_adj_table(FILE *infp, struct adj_node *padj_node) {
 
-	fscanf(infp, "%s%s%s%s%s", padj->str_vrf, padj->str_ip, padj->str_mac,
-			padj->str_vid,padj->str_interface);
+	padj_node->node = (struct adj_table *)malloc(sizeof(struct adj_table));
+	ASSERT(padj_node->node);
 
-	list_add_tail(&padj->list, head);
+	list_add_tail(&padj_node->node->list,&padj_node->head);
 
 	return APP_SUCC;
 }
