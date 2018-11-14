@@ -13,5 +13,7 @@ struct adj_table {
 	struct list_head list;
 };
 
+int free_adj_table(struct adj_table *p,struct list_head *head);
+
 /* body of adj.h */
 #endif /* _ADJ_H_ */

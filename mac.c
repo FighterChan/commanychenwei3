@@ -12,6 +12,7 @@
 
 #include "list.h"
 #include "mac.h"
+#include "app.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,22 +27,23 @@
 #include "list.h"
 #include <stdio.h>
 
-int add_mac_table(FILE *infp, struct mac_node *pmac_node) {
-
-	struct mac_table *p = pmac_node->node;
-	p = (struct mac_table *)malloc(sizeof(struct mac_table));
-	ASSERT(p);
+int add_mac_table(FILE *infp, struct mac_table *p,struct list_head *head) {
 
 	fscanf(infp, "%s%s%s", p->str_vid,
 			p->str_mac, p->str_interface);
 
-	list_add_tail(&p->list,&pmac_node->head);
+	list_add_tail(&p->list,head);
 
-	list_for_each(pmac_node->pos,&pmac_node->head){
-		p = list_entry(pmac_node->pos,struct mac_table,list);
-		printf("%s %s %s\n", p->str_vid,
-				p->str_mac, p->str_interface);
+	return APP_SUCC;
+}
+
+int free_mac_table(struct mac_table *p,struct list_head *head) {
+
+	struct list_head *pos,*next;
+	list_for_each_safe(pos,next,head) {
+		p = list_entry(pos,struct mac_table,list);
+		list_del_init(pos);
+		free(p);
 	}
-
 	return APP_SUCC;
 }

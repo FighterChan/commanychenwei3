@@ -19,12 +19,21 @@ do { \
 	} \
 }while(0)
 
+#define MALLOC(type,x) \
+do { \
+	x = (type *)malloc(sizeof(type)); \
+	ASSERT(x); \
+}while(0)
+
 #define MALLOC_FREE(x) \
 do { \
 	if(x) { \
 		free(x); \
 	} \
 }while(0)
+
+#define THREAD_GLOB(x)          ((x)->zg)
+
 
 struct arp_node {
 	struct arp_table *node;

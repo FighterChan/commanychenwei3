@@ -2,7 +2,6 @@
 #ifndef _MAC_H_
 #define _MAC_H_
 
-#include "app.h"
 #include "list.h"
 #include <stdio.h>
 
@@ -13,7 +12,8 @@ struct mac_table {
 	struct list_head list;
 };
 
-int add_mac_table(FILE *infp, struct mac_node *pmac_node);
+int add_mac_table(FILE *infp, struct mac_table *p,struct list_head *head);
+int free_mac_table(struct mac_table *p,struct list_head *head);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */
