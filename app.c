@@ -21,9 +21,7 @@
 
 struct table_node *pnode;
 
-//
 struct list_head head[3];
-//
 
 
 
