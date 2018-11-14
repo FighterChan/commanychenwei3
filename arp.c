@@ -22,9 +22,10 @@
  *@ function:
  */
 
-int add_arp_table(FILE *infp, struct arp_table *p,struct list_head *head) {
+int add_arp_table(FILE *infp,struct list_head *head) {
 
-
+	struct arp_table *p;
+	MALLOC(struct arp_table,p);
 	fscanf(infp, "%s%s%s%s", p->str_vrf,
 			p->str_ip, p->str_mac,
 			p->str_vid);
@@ -34,9 +35,10 @@ int add_arp_table(FILE *infp, struct arp_table *p,struct list_head *head) {
 	return APP_SUCC;
 }
 
-int free_arp_table(struct arp_table *p,struct list_head *head) {
+int free_arp_table(struct list_head *head) {
 
 	struct list_head *pos,*next;
+	struct arp_table *p;
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
 		list_del_init(pos);

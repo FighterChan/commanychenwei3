@@ -27,7 +27,10 @@
 #include "list.h"
 #include <stdio.h>
 
-int add_mac_table(FILE *infp, struct mac_table *p,struct list_head *head) {
+int add_mac_table(FILE *infp, struct list_head *head) {
+
+	struct mac_table *p;
+	MALLOC(struct mac_table,p);
 
 	fscanf(infp, "%s%s%s", p->str_vid,
 			p->str_mac, p->str_interface);
@@ -37,9 +40,10 @@ int add_mac_table(FILE *infp, struct mac_table *p,struct list_head *head) {
 	return APP_SUCC;
 }
 
-int free_mac_table(struct mac_table *p,struct list_head *head) {
+int free_mac_table(struct list_head *head) {
 
 	struct list_head *pos,*next;
+	struct mac_table *p;
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
 		list_del_init(pos);

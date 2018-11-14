@@ -15,19 +15,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int add_adj_table(FILE *infp, struct adj_node *padj_node) {
+int add_adj_table(FILE *infp, struct list_head *head) {
 
-	padj_node->node = (struct adj_table *)malloc(sizeof(struct adj_table));
-	ASSERT(padj_node->node);
+	struct adj_table *p;
+	MALLOC(struct adj_table,p);
 
-	list_add_tail(&padj_node->node->list,&padj_node->head);
+	list_add_tail(&p->list,head);
 
 	return APP_SUCC;
 }
 
-int free_adj_table(struct adj_table *p,struct list_head *head) {
+int free_adj_table(struct list_head *head) {
 
 	struct list_head *pos,*next;
+	struct adj_table *p;
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct adj_table,list);
 		list_del_init(pos);
@@ -36,9 +37,10 @@ int free_adj_table(struct adj_table *p,struct list_head *head) {
 	return APP_SUCC;
 }
 
-int write_file(FILE *fp,int adj_count,struct adj_table *p,struct list_head *head) {
+int write_file(FILE *fp,int adj_count,struct list_head *head) {
 
 	struct list_head *pos,*next;
+	struct adj_table *p;
 	fprintf(fp,"count:%d\n", adj_count);
 	printf("count:%d\n", adj_count);
 	/*输出*/

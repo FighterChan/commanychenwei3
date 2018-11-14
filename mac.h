@@ -12,8 +12,8 @@ struct mac_table {
 	struct list_head list;
 };
 
-int add_mac_table(FILE *infp, struct mac_table *p,struct list_head *head);
-int free_mac_table(struct mac_table *p,struct list_head *head);
+int add_mac_table(FILE *infp,struct list_head *head);
+int free_mac_table(struct list_head *head);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */

@@ -13,8 +13,8 @@ struct arp_table {
 	struct list_head list;
 };
 
-int add_arp_table(FILE *infp, struct arp_table *p,struct list_head *head);
-int free_arp_table(struct arp_table *p,struct list_head *head);
+int add_arp_table(FILE *infp,struct list_head *head);
+int free_arp_table(struct list_head *head);
 
 /* body of arp.h */
 #endif /* _ARP_H_ */
