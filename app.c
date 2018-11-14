@@ -19,7 +19,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-int look_up_node(const char *outfile);
+int look_up_node(const char *outfile, struct arp_table *parp_t,
+		struct list_head *sarp_head, struct mac_table *pmac_t,
+		struct list_head *smac_head, struct adj_table *padj_t,
+		struct list_head *sadj_head);
 
 int conver_filename(char *infile, char *outfile) {
 	char *token;
@@ -32,22 +35,24 @@ int conver_filename(char *infile, char *outfile) {
 	return APP_SUCC;
 }
 
-struct arp_node *parp;
-struct mac_node *pmac;
-struct adj_node *padj;
+struct arp_table *parp;
+struct mac_table *pmac;
+struct adj_table *padj;
+
+struct list_head arp_head;
+struct list_head mac_head;
+struct list_head adj_head;
 
 int main(int argc, char **argv) {
 
 
 
-	MALLOC(struct arp_node,parp);
-	INIT_LIST_HEAD(&parp->head);
+	INIT_LIST_HEAD(&arp_head);
 
-	MALLOC(struct mac_node,pmac);
-	INIT_LIST_HEAD(&pmac->head);
+	INIT_LIST_HEAD(&mac_head);
 
-	MALLOC(struct adj_node,padj);
-	INIT_LIST_HEAD(&padj->head);
+	MALLOC(struct adj_table,padj);
+	INIT_LIST_HEAD(&adj_head);
 
 	char cmd[32];
 	memset(cmd,0,sizeof(cmd));
@@ -64,62 +69,48 @@ int main(int argc, char **argv) {
 	while(!feof(infp)) {
 		fscanf(infp,"%s",cmd);
 		if(strcmp(cmd,"add-arp") == 0) {
-			MALLOC(struct arp_table,parp->node);
-			add_arp_table(infp,parp->node,&parp->head);
+			MALLOC(struct arp_table,parp);
+			add_arp_table(infp,parp,&arp_head);
 		} else if (strcmp(cmd,"add-mac") == 0) {
-			MALLOC(struct mac_table,pmac->node);
-			add_mac_table(infp,pmac->node,&pmac->head);
+			MALLOC(struct mac_table,pmac);
+			add_mac_table(infp,pmac,&mac_head);
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
-			look_up_node(outpath);
+			look_up_node(outpath,parp,&arp_head,pmac,&mac_head,padj,&adj_head);
 		}
 		memset(cmd,0,sizeof(cmd));
 	}
 
-	free_arp_table(parp->node,&parp->head);
-	MALLOC_FREE(parp);
-	free_mac_table(pmac->node,&pmac->head);
-	MALLOC_FREE(pmac);
-	free_adj_table(padj->node,&padj->head);
-	MALLOC_FREE(padj);
+	free_arp_table(parp,&arp_head);
+	free_mac_table(pmac,&mac_head);
+	free_adj_table(padj,&adj_head);
 	return APP_SUCC;
 }
 
-int write_file(FILE *fp,int adj_count,struct adj_table *p,struct list_head *head) {
-
-	struct list_head *pos,*next;
-	fprintf(fp,"count:%d\n", adj_count);
-	printf("count:%d\n", adj_count);
-	/*输出*/
-	list_for_each(pos,head) {
-		p = list_entry(pos, struct adj_table, list);
-		fprintf(fp,"%s %s %s %s %s\n", p->str_vrf, p->str_ip,
-				p->str_mac, p->str_vid, p->str_interface);
-	}
-	return APP_SUCC;
-}
-
-int look_up_node(const char *outfile) {
+int look_up_node(const char *outfile, struct arp_table *parp_t,
+		struct list_head *sarp_head, struct mac_table *pmac_t,
+		struct list_head *smac_head, struct adj_table *padj_t,
+		struct list_head *sadj_head) {
 
 	int count = 0;
 	struct list_head *arp_pos;
 	struct list_head *mac_pos;
 	struct list_head *adj_pos;
 
-	list_for_each(arp_pos,&parp->head) {
-		parp->node = list_entry(arp_pos, struct arp_table, list);
-		list_for_each(mac_pos,&pmac->head) {
-			pmac->node = list_entry(mac_pos, struct mac_table, list);
-			if ((strcmp(parp->node->str_mac, pmac->node->str_mac) == 0
-					&& strcmp(parp->node->str_vid, pmac->node->str_vid) == 0)) {
-				MALLOC(struct adj_node,padj->node);
-				strcpy(padj->node->str_vrf, parp->node->str_vrf);
-				strcpy(padj->node->str_ip, parp->node->str_ip);
-				strcpy(padj->node->str_mac, parp->node->str_mac);
-				strcpy(padj->node->str_vid, parp->node->str_vid);
-				strcpy(padj->node->str_interface, pmac->node->str_interface);
-				list_add_tail(&padj->node->list, &padj->head);
-				printf("%s %s %s %s %s\n", padj->node->str_vrf, padj->node->str_ip,
-								padj->node->str_mac, padj->node->str_vid, padj->node->str_interface);
+	list_for_each(arp_pos,sarp_head) {
+		parp_t = list_entry(arp_pos, struct arp_table, list);
+		list_for_each(mac_pos,smac_head) {
+			pmac_t = list_entry(mac_pos, struct mac_table, list);
+			if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
+					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
+				MALLOC(struct adj_table,padj_t);
+				strcpy(padj_t->str_vrf, parp_t->str_vrf);
+				strcpy(padj_t->str_ip, parp_t->str_ip);
+				strcpy(padj_t->str_mac, parp_t->str_mac);
+				strcpy(padj_t->str_vid, parp_t->str_vid);
+				strcpy(padj_t->str_interface, pmac_t->str_interface);
+				list_add_tail(&padj_t->list, sadj_head);
+//				printf("%s %s %s %s %s\n", padj_t->str_vrf, padj_t->str_ip,
+//								padj_t->str_mac, padj_t->str_vid, padj_t->str_interface);
 				count++;
 			}
 		}
@@ -129,15 +120,8 @@ int look_up_node(const char *outfile) {
 	outfp = fopen(outfile, "w");
 	ASSERT(outfp);
 	/* 输出adj到文件 */
-//	write_file(outfp,count,padj->node,&padj->head);
-	fprintf(outfp,"count:%d\n", count);
-	printf("count:%d\n", count);
+	write_file(outfp,count,padj_t,sadj_head);
 	/*输出*/
-	list_for_each(adj_pos,&padj->head) {
-		padj->node = list_entry(adj_pos, struct adj_table, list);
-		fprintf(outfp,"%s %s %s %s %s\n", padj->node->str_vrf, padj->node->str_ip,
-				padj->node->str_mac, padj->node->str_vid, padj->node->str_interface);
-	}
-	free(outfp);
+	fclose(outfp);
 	return APP_SUCC;
 }
