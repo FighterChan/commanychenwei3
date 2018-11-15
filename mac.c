@@ -49,14 +49,13 @@ int del_mac_table(FILE *infp,struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct mac_table *p;
-	MALLOC(struct mac_table,p);
 	fscanf(infp, "%s%s", s_key.vid,s_key.mac);
 
 	printf("vid=%s,mac=%s\n",s_key.vid,s_key.mac);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
-		if ((strcmp(p->str_vid,s_key.vid) == 0) && (strcmp(p->str_mac,s_key.mac))) {
+		if ((strcmp(p->str_vid,s_key.vid) == 0) && (strcmp(p->str_mac,s_key.mac) == 0)) {
 			list_del_init(pos);
 			free(p);
 		}

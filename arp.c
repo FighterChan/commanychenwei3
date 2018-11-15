@@ -44,7 +44,6 @@ int del_arp_table(FILE *infp,struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct arp_table *p;
-	MALLOC(struct arp_table,p);
 	fscanf(infp, "%s%s", s_key.vrf,s_key.ip);
 
 	printf("vrf=%s,ip=%s\n",s_key.vrf,s_key.ip);

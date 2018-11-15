@@ -3,3 +3,4 @@
 *.o
 *.exe
 1.txt 1_result.txt example1.txt example1_result.txt test.txt
+1.txt 1_result.txt example1.txt example1_result.txt in.txt in_result.txt test.txt

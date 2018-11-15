@@ -1,0 +1,12 @@
+add-arp vrf-1  10.0.0.1  0000.0000.0001  10
+add-arp vrf-2  10.0.0.1  0000.0000.0001  20 	
+add-arp vrf-3  20.0.0.1  0000.0000.0003  10 
+add-arp vrf-4  20.0.0.1  0000.0000.0001  20	
+add-mac 10 0000.0000.0001 ten0/1
+del-arp vrf-3  20.0.0.1
+add-mac 20 0000.0000.0001 ten0/2 
+add-mac 30 0000.0000.0002 ten0/2 
+del-vid 30     
+del-vrf vrf-2  
+del-mac 10 0000.0000.0001		
+show-adj-all
