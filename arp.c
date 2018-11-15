@@ -29,7 +29,6 @@ int add_arp_table(FILE *infp,struct list_head *head) {
 	fscanf(infp, "%s%s%s%s", p->str_vrf,
 			p->str_ip, p->str_mac,
 			p->str_vid);
-
 	list_add_tail(&p->list,head);
 
 	return APP_SUCC;

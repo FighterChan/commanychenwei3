@@ -15,6 +15,7 @@
 #include "list.h"
 #include "mac.h"
 #include "app.h"
+#include "tools.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -41,6 +42,11 @@ int main(int argc, char **argv) {
 	char cmd[32];
 	memset(cmd,0,sizeof(cmd));
 
+	char outpath[32];
+	memset(outpath,0,sizeof(outpath));
+
+	int show_log = CLOSE_LOG;
+
 	CLEAR_FLAG_ALL(flg);
 
 	int adj_count = 0;
@@ -48,6 +54,8 @@ int main(int argc, char **argv) {
 	FILE *infp;
 	infp = fopen(argv[1],"r");
 	ASSERT(infp);
+
+	conver_filename(argv[1],outpath);
 
 	while(!feof(infp)) {
 		fscanf(infp,"%s",cmd);
@@ -64,29 +72,31 @@ int main(int argc, char **argv) {
 			del_mac_table(infp,&mac_head);
 			SET_FLAG(flg,DEL_MAC);
 		} else if (strcmp(cmd,"del-vrf") == 0) {
-			del_table_by_vrf(infp,&arp_head,&adj_head);
+			del_table_by_vrf(infp,outpath,show_log,&arp_head,&adj_head);
 			SET_FLAG(flg,DEL_VRF);
 		} else if (strcmp(cmd,"del-vid") == 0) {
-			del_table_by_vid(infp,&mac_head,&adj_head);
+			del_table_by_vid(infp,outpath,show_log,&mac_head,&adj_head);
 			SET_FLAG(flg,DEL_VID);
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
 			SET_FLAG(flg,SHOW_ADJ_ALL);
+			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
+			write_file(outpath, show_log, adj_count, &adj_head);
 		} else if (strcmp(cmd,"show-adj") == 0) {
 			SET_FLAG(flg,SHOW_ADJ);
 		} else if (strcmp(cmd,"show-log") == 0) {
 			SET_FLAG(flg,SHOW_LOG);
+			show_log = OPEN_LOG;
 		} else {
-			memset(cmd,0,sizeof(cmd));
-			CLEAR_FLAG_ALL(flg);
-			continue;
+
 		}
 
-		/*arp和mac同时存在的时候才更新adj,删除任意表，都将更新adj*/
-		if (CHECK_FLAG(flg,SHOW_LOG) | CHECK_FLAG(flg,SHOW_ADJ_ALL) | CHECK_FLAG(flg,SHOW_ADJ)) {
-			look_up_node(&adj_count,&arp_head,&mac_head,&adj_head);
-			write_file(argv[1],adj_count,&adj_head);
-			break;
+		if (CHECK_FLAG(flg, SHOW_LOG)
+				!= 0 || CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0 || CHECK_FLAG(flg,SHOW_ADJ!= 0)) {
+//			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
+//			write_file(outpath, show_log, adj_count, &adj_head);
+			printf("i = %d\n", i++);
 		}
+		memset(cmd,0,sizeof(cmd));
 	}	/* 输出adj到文件 */
 
 	fclose(infp);

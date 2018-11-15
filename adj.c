@@ -32,7 +32,8 @@
 //	return APP_SUCC;
 //}
 
-int del_table_by_vrf(FILE *infp,struct list_head *arp_head,struct list_head *adj_head) {
+int del_table_by_vrf(FILE *infp, const char *outpath, int show_log,
+		struct list_head *arp_head, struct list_head *adj_head) {
 
 	char vrf[32 + 1];
 	memset(vrf,0,sizeof(vrf));
@@ -51,6 +52,18 @@ int del_table_by_vrf(FILE *infp,struct list_head *arp_head,struct list_head *adj
 	list_for_each_safe(pos,next,adj_head) {
 		padj = list_entry(pos,struct adj_table,list);
 		if (strcmp(padj->str_vrf,vrf) == 0) {
+			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+			if (show_log == CLOSE_LOG) {
+
+			} else {
+				FILE *outfp;
+				outfp = fopen(outpath, "a");
+				ASSERT(outfp);
+				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+						padj->str_ip, padj->str_mac, padj->str_vid, padj->str_interface);
+				fclose(outfp);
+
+			}
 			list_del_init(pos);
 			free(padj);
 		}
@@ -64,11 +77,12 @@ int del_table_by_vrf(FILE *infp,struct list_head *arp_head,struct list_head *adj
 			free(parp);
 		}
 	}
-
 	return APP_SUCC;
 }
 
-int del_table_by_vid(FILE *infp,struct list_head *mac_head,struct list_head *adj_head) {
+int del_table_by_vid(FILE *infp, const char *outpath, int show_log,
+		struct list_head *mac_head, struct list_head *adj_head) {
+
 
 	char vid[4 + 1];
 	memset(vid,0,sizeof(vid));
@@ -87,6 +101,17 @@ int del_table_by_vid(FILE *infp,struct list_head *mac_head,struct list_head *adj
 	list_for_each_safe(pos,next,adj_head) {
 		padj = list_entry(pos,struct adj_table,list);
 		if (strcmp(padj->str_vid,vid) == 0) {
+			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+			if (show_log == CLOSE_LOG) {
+
+			} else {
+				FILE *outfp;
+				outfp = fopen(outpath, "a");
+				ASSERT(outfp);
+				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+						padj->str_ip, padj->str_mac, padj->str_vid, padj->str_interface);
+				fclose(outfp);
+			}
 			list_del_init(pos);
 			free(padj);
 		}
@@ -116,29 +141,60 @@ int free_adj_table(struct list_head *head) {
 	return APP_SUCC;
 }
 
-int write_file(const char *path,int adj_count,struct list_head *head) {
+int write_file(const char *outpath,int show_log,int adj_count,struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct adj_table *p;
-	char outpath[32];
-	memset(outpath,0,sizeof(outpath));
-	conver_filename(path,outpath);
 	FILE *outfp;
-	outfp = fopen(outpath, "w");
+	outfp = fopen(outpath, "a");
 	ASSERT(outfp);
 	fprintf(outfp,"count:%d\n", adj_count);
 	printf("count:%d\n", adj_count);
 	/*输出*/
 	list_for_each(pos,head) {
 		p = list_entry(pos, struct adj_table, list);
-		fprintf(outfp,"%s %s %s %s %s\n", p->str_vrf, p->str_ip,
-				p->str_mac, p->str_vid, p->str_interface);
+		printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+		if (show_log == CLOSE_LOG) {
+			fprintf(outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip,
+					p->str_mac, p->str_vid, p->str_interface);
+		} else {
+			fprintf(outfp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf,
+					p->str_ip, p->str_mac, p->str_vid, p->str_interface);
+		}
 	}
 	fclose(outfp);
 	return APP_SUCC;
 }
+#if 0
+int write_log(const char *path,struct list_head *head) {
 
-int look_up_node(int *out_count, struct list_head *sarp_head,
+	char outpath[32];
+	memset(outpath, 0, sizeof(outpath));
+
+	struct list_head *pos, *next;
+	struct adj_table *p;
+
+	conver_filename(path, outpath);
+	FILE *outfp;
+	outfp = fopen(outpath, "w");
+	ASSERT(outfp);
+
+	list_for_each(pos,head) {
+		p = list_entry(pos, struct adj_table, list);
+		if (strcmp(p->update_flg, "01") == 0) {
+			fprintf(outfp, "%s %s %s %s %s %s\n", "add_adj", p->str_vrf, p->str_ip,
+					p->str_mac, p->str_vid, p->str_interface);
+		} else if (strcmp(p->update_flg, "02") == 0) {
+			fprintf(outfp, "%s %s %s %s %s %s\n", "del_adj", p->str_vrf, p->str_ip,
+					p->str_mac, p->str_vid, p->str_interface);
+		}
+	}
+
+	return APP_SUCC;
+}
+#endif
+
+int look_up_node(int *out_count,struct list_head *sarp_head,
 		struct list_head *smac_head, struct list_head *sadj_head) {
 
 	int count = 0;
@@ -149,9 +205,9 @@ int look_up_node(int *out_count, struct list_head *sarp_head,
 	struct mac_table *pmac_t;
 	struct adj_table *padj_t;
 
-		list_for_each(arp_pos,sarp_head) {
+		list_for_each_safe(arp_pos,arp_next,sarp_head) {
 			parp_t = list_entry(arp_pos, struct arp_table, list);
-			list_for_each(mac_pos,smac_head) {
+			list_for_each_safe(mac_pos,mac_next,smac_head) {
 				pmac_t = list_entry(mac_pos, struct mac_table, list);
 				if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
 						&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
@@ -161,8 +217,14 @@ int look_up_node(int *out_count, struct list_head *sarp_head,
 					strcpy(padj_t->str_mac, parp_t->str_mac);
 					strcpy(padj_t->str_vid, parp_t->str_vid);
 					strcpy(padj_t->str_interface, pmac_t->str_interface);
+					/*更新*/
 					list_add_tail(&padj_t->list, sadj_head);
 					count++;
+				} else {
+//					list_del_init(arp_pos);
+//					free(parp_t);
+//					list_del_init(mac_pos);
+//					free(pmac_t);
 				}
 			}
 		}

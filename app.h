@@ -14,6 +14,11 @@
 #define CMD_MAX (9)
 
 enum {
+	CLOSE_LOG,
+	OPEN_LOG
+};
+
+enum {
 	ADD_ARP = 			(unsigned long)(1 << 0),
 	ADD_MAC = 			(unsigned long)(1 << 1),
 	DEL_ARP = 			(unsigned long)(1 << 2),
@@ -27,6 +32,7 @@ enum {
 
 #define SET_FLAG(x,y)		(x |= y)
 #define CHECK_FLAG(x,y)		(x & y)
+#define CHECK_FLAG_ALL(x)	(x != 0)
 #define CLEAR_FLAG(x,y)		(x &= ~(y))
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
 
