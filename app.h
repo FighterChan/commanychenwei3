@@ -7,6 +7,8 @@
 #include "adj.h"
 #include "list.h"
 
+#define DEBUG 0
+
 #define APP_SUCC (0)
 #define APP_ERR  (-1)
 #define CMD_MAX (9)

@@ -13,6 +13,7 @@ struct mac_table {
 };
 
 int add_mac_table(FILE *infp,struct list_head *head);
+int del_mac_table(FILE *infp,struct list_head *head);
 int free_mac_table(struct list_head *head);
 
 /* body of mac.h */

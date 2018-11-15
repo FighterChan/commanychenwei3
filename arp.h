@@ -14,6 +14,7 @@ struct arp_table {
 };
 
 int add_arp_table(FILE *infp,struct list_head *head);
+int del_arp_table(FILE *infp,struct list_head *head);
 int free_arp_table(struct list_head *head);
 
 /* body of arp.h */

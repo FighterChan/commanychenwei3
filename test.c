@@ -13,7 +13,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "list.h"
+#include "app.h"
 
+#if !DEBUG
+#else
 struct node {
 	char name[32];
 	struct list_head list;
@@ -41,14 +44,21 @@ int list_test(struct list_head *head) {
 
 int for_each(struct list_head *head){
 	struct node *pnode;
-	struct list_head *pos,*next;
+	struct list_head *pos;
 	list_for_each(pos,head){
 		pnode = list_entry(pos,struct node,list);
 		printf("%s\n",pnode->name);
 	}
+	return 0;
+}
+
+int for_each_save(struct list_head *head){
+	struct node *pnode;
+	struct list_head *pos,*next;
 
 	list_for_each_safe(pos,next,head) {
 		pnode = list_entry(pos,struct node,list);
+		list_del_init(pos);
 		free(pnode);
 	}
 	return 0;
@@ -59,5 +69,7 @@ int main(int argc, char **argv) {
 	INIT_LIST_HEAD(&shead);
 	list_test(&shead);
 	for_each(&shead);
+	for_each_save(&shead);
 	return 0;
 }
+#endif

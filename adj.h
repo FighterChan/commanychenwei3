@@ -18,7 +18,10 @@ int add_adj_table(FILE *infp, struct list_head *head);
 
 int free_adj_table(struct list_head *head);
 
-int write_file(FILE *fp,int adj_count,struct list_head *head);
+int write_file(const char  *path,int adj_count,struct list_head *head);
+
+int look_up_node(const char *path, struct list_head *sarp_head,
+		struct list_head *smac_head, struct list_head *sadj_head);
 
 /* body of adj.h */
 #endif /* _ADJ_H_ */
