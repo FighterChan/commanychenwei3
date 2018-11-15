@@ -32,7 +32,7 @@
 //	return APP_SUCC;
 //}
 
-int del_table_by_vrf(FILE *infp, const char *outpath, int show_log,
+int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 		struct list_head *arp_head, struct list_head *adj_head) {
 
 	char vrf[32 + 1];
@@ -56,12 +56,8 @@ int del_table_by_vrf(FILE *infp, const char *outpath, int show_log,
 			if (show_log == CLOSE_LOG) {
 
 			} else {
-				FILE *outfp;
-				outfp = fopen(outpath, "a");
-				ASSERT(outfp);
 				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
 						padj->str_ip, padj->str_mac, padj->str_vid, padj->str_interface);
-				fclose(outfp);
 
 			}
 			list_del_init(pos);
@@ -80,7 +76,7 @@ int del_table_by_vrf(FILE *infp, const char *outpath, int show_log,
 	return APP_SUCC;
 }
 
-int del_table_by_vid(FILE *infp, const char *outpath, int show_log,
+int del_table_by_vid(FILE *infp, FILE *outfp, int show_log,
 		struct list_head *mac_head, struct list_head *adj_head) {
 
 
@@ -105,12 +101,8 @@ int del_table_by_vid(FILE *infp, const char *outpath, int show_log,
 			if (show_log == CLOSE_LOG) {
 
 			} else {
-				FILE *outfp;
-				outfp = fopen(outpath, "a");
-				ASSERT(outfp);
 				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
 						padj->str_ip, padj->str_mac, padj->str_vid, padj->str_interface);
-				fclose(outfp);
 			}
 			list_del_init(pos);
 			free(padj);
@@ -141,20 +133,23 @@ int free_adj_table(struct list_head *head) {
 	return APP_SUCC;
 }
 
-int write_file(const char *outpath,int show_log,int adj_count,struct list_head *head) {
+int write_file(FILE *outfp,int show_log,int adj_count,struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct adj_table *p;
-	FILE *outfp;
-	outfp = fopen(outpath, "a");
-	ASSERT(outfp);
-	fprintf(outfp,"count:%d\n", adj_count);
-	printf("count:%d\n", adj_count);
+	if (show_log == CLOSE_LOG
+			&& (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
+					|| CHECK_FLAG(flg,SHOW_ADJ) != 0)) {
+		fprintf(outfp,"count:%d\n", adj_count);
+//	    printf("count:%d\n", adj_count);
+	}
 	/*输出*/
 	list_for_each(pos,head) {
 		p = list_entry(pos, struct adj_table, list);
 		printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
-		if (show_log == CLOSE_LOG) {
+		if (show_log == CLOSE_LOG
+				&& (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
+						|| CHECK_FLAG(flg,SHOW_ADJ) != 0)) {
 			fprintf(outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip,
 					p->str_mac, p->str_vid, p->str_interface);
 		} else {
@@ -162,7 +157,6 @@ int write_file(const char *outpath,int show_log,int adj_count,struct list_head *
 					p->str_ip, p->str_mac, p->str_vid, p->str_interface);
 		}
 	}
-	fclose(outfp);
 	return APP_SUCC;
 }
 #if 0

@@ -57,6 +57,10 @@ int main(int argc, char **argv) {
 
 	conver_filename(argv[1],outpath);
 
+	FILE *outfp;
+	outfp = fopen(outpath,"w");
+	ASSERT(outfp);
+
 	while(!feof(infp)) {
 		fscanf(infp,"%s",cmd);
 		if(strcmp(cmd,"add-arp") == 0) {
@@ -72,34 +76,32 @@ int main(int argc, char **argv) {
 			del_mac_table(infp,&mac_head);
 			SET_FLAG(flg,DEL_MAC);
 		} else if (strcmp(cmd,"del-vrf") == 0) {
-			del_table_by_vrf(infp,outpath,show_log,&arp_head,&adj_head);
+			del_table_by_vrf(infp,outfp,show_log,&arp_head,&adj_head);
 			SET_FLAG(flg,DEL_VRF);
 		} else if (strcmp(cmd,"del-vid") == 0) {
-			del_table_by_vid(infp,outpath,show_log,&mac_head,&adj_head);
+			del_table_by_vid(infp,outfp,show_log,&mac_head,&adj_head);
 			SET_FLAG(flg,DEL_VID);
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
 			SET_FLAG(flg,SHOW_ADJ_ALL);
-			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
-			write_file(outpath, show_log, adj_count, &adj_head);
 		} else if (strcmp(cmd,"show-adj") == 0) {
 			SET_FLAG(flg,SHOW_ADJ);
 		} else if (strcmp(cmd,"show-log") == 0) {
-			SET_FLAG(flg,SHOW_LOG);
 			show_log = OPEN_LOG;
 		} else {
 
 		}
+		look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
 
 		if (CHECK_FLAG(flg, SHOW_LOG)
 				!= 0 || CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0 || CHECK_FLAG(flg,SHOW_ADJ!= 0)) {
-//			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
-//			write_file(outpath, show_log, adj_count, &adj_head);
+			write_file(outfp, show_log, adj_count, &adj_head);
 			printf("i = %d\n", i++);
 		}
 		memset(cmd,0,sizeof(cmd));
 	}	/* 输出adj到文件 */
 
 	fclose(infp);
+	fclose(outfp);
 	free_arp_table(&arp_head);
 	free_mac_table(&mac_head);
 	free_adj_table(&adj_head);

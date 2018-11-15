@@ -59,5 +59,7 @@ do { \
 
 #define THREAD_GLOB(x)          ((x)->zg)
 
+extern int flg;
+
 /* body of app.h */
 #endif /* _APP_H_ */
