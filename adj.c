@@ -52,7 +52,7 @@ int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 	list_for_each_safe(pos,next,adj_head) {
 		padj = list_entry(pos,struct adj_table,list);
 		if (strcmp(padj->str_vrf,vrf) == 0) {
-			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+//			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
 			if (show_log == CLOSE_LOG) {
 
 			} else {
@@ -97,7 +97,7 @@ int del_table_by_vid(FILE *infp, FILE *outfp, int show_log,
 	list_for_each_safe(pos,next,adj_head) {
 		padj = list_entry(pos,struct adj_table,list);
 		if (strcmp(padj->str_vid,vid) == 0) {
-			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+//			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
 			if (show_log == CLOSE_LOG) {
 
 			} else {
@@ -144,9 +144,10 @@ int write_file(FILE *outfp,int show_log,int adj_count,struct list_head *head) {
 //	    printf("count:%d\n", adj_count);
 	}
 	/*输出*/
+	int i = 0;
 	list_for_each(pos,head) {
 		p = list_entry(pos, struct adj_table, list);
-		printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
+//		printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
 		if (show_log == CLOSE_LOG
 				&& (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
 						|| CHECK_FLAG(flg,SHOW_ADJ) != 0)) {
@@ -156,6 +157,7 @@ int write_file(FILE *outfp,int show_log,int adj_count,struct list_head *head) {
 			fprintf(outfp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf,
 					p->str_ip, p->str_mac, p->str_vid, p->str_interface);
 		}
+		printf("i= %d\n",i++);
 	}
 	return APP_SUCC;
 }
@@ -192,36 +194,45 @@ int look_up_node(int *out_count,struct list_head *sarp_head,
 		struct list_head *smac_head, struct list_head *sadj_head) {
 
 	int count = 0;
-	struct list_head *arp_pos,*arp_next;
-	struct list_head *mac_pos,*mac_next;
-	struct list_head *adj_pos,*adj_next;
+	struct list_head *arp_pos, *arp_next;
+	struct list_head *mac_pos, *mac_next;
+	struct list_head *adj_pos, *adj_next;
 	struct arp_table *parp_t;
 	struct mac_table *pmac_t;
 	struct adj_table *padj_t;
 
-		list_for_each_safe(arp_pos,arp_next,sarp_head) {
-			parp_t = list_entry(arp_pos, struct arp_table, list);
-			list_for_each_safe(mac_pos,mac_next,smac_head) {
-				pmac_t = list_entry(mac_pos, struct mac_table, list);
-				if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
-						&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
-					MALLOC(struct adj_table,padj_t);
-					strcpy(padj_t->str_vrf, parp_t->str_vrf);
-					strcpy(padj_t->str_ip, parp_t->str_ip);
-					strcpy(padj_t->str_mac, parp_t->str_mac);
-					strcpy(padj_t->str_vid, parp_t->str_vid);
-					strcpy(padj_t->str_interface, pmac_t->str_interface);
-					/*更新*/
-					list_add_tail(&padj_t->list, sadj_head);
-					count++;
-				} else {
-//					list_del_init(arp_pos);
-//					free(parp_t);
-//					list_del_init(mac_pos);
-//					free(pmac_t);
-				}
+	list_for_each_safe(arp_pos,arp_next,sarp_head)
+	{
+		parp_t = list_entry(arp_pos, struct arp_table, list);
+		list_for_each_safe(mac_pos,mac_next,smac_head)
+		{
+			pmac_t = list_entry(mac_pos, struct mac_table, list);
+			if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
+					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
+
+//				list_for_each(adj_pos,sadj_head) {
+//					padj_t = list_entry(adj_pos,struct adj_table,list);
+//					if (padj_t && strcmp(padj_t->str_vrf, parp_t->str_vrf) == 0
+//							&& strcmp(padj_t->str_ip, parp_t->str_ip) == 0
+//							&& strcmp(padj_t->str_mac, parp_t->str_mac) == 0
+//							&& strcmp(padj_t->str_vid, parp_t->str_vid)
+//							&& strcmp(padj_t->str_interface, pmac_t->str_interface)
+//									== 0) {
+//						return -1;
+//					}
+//				}
+				MALLOC(struct adj_table, padj_t);
+				strcpy(padj_t->str_vrf, parp_t->str_vrf);
+				strcpy(padj_t->str_ip, parp_t->str_ip);
+				strcpy(padj_t->str_mac, parp_t->str_mac);
+				strcpy(padj_t->str_vid, parp_t->str_vid);
+				strcpy(padj_t->str_interface, pmac_t->str_interface);
+				/*更新*/
+				list_add_tail(&padj_t->list, sadj_head);
+				count++;
 			}
 		}
+	}
 	*out_count = count;
 	return APP_SUCC;
 }

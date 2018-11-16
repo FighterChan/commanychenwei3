@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
 			show_log = OPEN_LOG;
 		}
 
+
 		if (show_log == OPEN_LOG) {
 			printf("i = %d\n", i++);
 			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
