@@ -83,17 +83,15 @@ int main(int argc, char **argv) {
 			SET_FLAG(flg,DEL_VID);
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
 			SET_FLAG(flg,SHOW_ADJ_ALL);
-			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
 			write_file(outfp, show_log, adj_count, &adj_head);
 		} else if (strcmp(cmd,"show-adj") == 0) {
 			SET_FLAG(flg,SHOW_ADJ);
 		} else if (strcmp(cmd,"show-log") == 0) {
 			show_log = OPEN_LOG;
 		}
-
+		look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
 		if (show_log == OPEN_LOG) {
 			printf("i = %d\n", i++);
-			look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
 			write_file(outfp, show_log, adj_count, &adj_head);
 		}
 		memset(cmd,0,sizeof(cmd));

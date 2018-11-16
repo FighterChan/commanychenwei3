@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 struct mac_table {
-    char str_vid[4 + 1];
+    int int_vid;
     char str_mac[16 + 1];
     char str_interface[32 + 1];
 	struct list_head list;

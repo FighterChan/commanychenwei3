@@ -6,6 +6,7 @@
 #include "mac.h"
 #include "adj.h"
 #include "list.h"
+#include <stdlib.h>
 
 #define DEBUG 0
 

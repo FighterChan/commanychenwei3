@@ -9,9 +9,9 @@ struct adj_table {
     char str_vrf[32 + 1];
     char str_ip[16 + 1];
     char str_mac[16 + 1];
-    char str_vid[4 + 1];
+    int int_vid;
     char str_interface[32 + 1];
-    char update_flg[2];
+    int counter;
 	struct list_head list;
 };
 

@@ -9,7 +9,7 @@ struct arp_table {
     char str_vrf[32 + 1];
     char str_ip[16 + 1];
     char str_mac[16 + 1];
-    char str_vid[4 + 1];
+    int int_vid;
 	struct list_head list;
 };
 
