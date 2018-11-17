@@ -3,6 +3,8 @@
 #define _ADJ_H_
 
 #include "list.h"
+#include "arp.h"
+#include "mac.h"
 #include <stdio.h>
 
 struct adj_table {
@@ -19,9 +21,9 @@ int add_adj_table(struct adj_table *s, struct list_head *head);
 
 int free_adj_table(struct list_head *head);
 
-int del_table_by_vrf(FILE *infp,FILE *outfp, int show_log,
+int del_table_by_vrf(struct arp_table *s,
 		struct list_head *arp_head, struct list_head *adj_head);
-int del_table_by_vid(FILE *infp,FILE *outfp, int show_log,
+int del_table_by_vid(struct mac_table *s,
 		struct list_head *mac_head, struct list_head *adj_head);
 
 int write_file(FILE *outfp,struct list_head *head);

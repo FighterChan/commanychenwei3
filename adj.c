@@ -11,6 +11,7 @@
  */
 #include "list.h"
 #include "adj.h"
+#include "mac.h"
 #include "app.h"
 #include "tools.h"
 #include <stdio.h>
@@ -22,6 +23,9 @@ int add_adj_table(struct adj_table *s, struct list_head *head) {
 	struct adj_table *p;
 	struct list_head *pos, *next;
 
+	ASSERT(s);
+	ASSERT(head);
+
 #if 1
 	list_for_each_safe(pos,next,head)
 	{
@@ -31,7 +35,7 @@ int add_adj_table(struct adj_table *s, struct list_head *head) {
 				&& strcmp(p->str_mac, s->str_mac) == 0
 				&& strcmp(p->str_ip, s->str_ip) == 0
 				&& strcmp(p->str_vrf, s->str_vrf) == 0) {
-			return -1;
+			return APP_ERR;
 		}
 	}
 #endif
@@ -49,11 +53,7 @@ int add_adj_table(struct adj_table *s, struct list_head *head) {
 	return APP_SUCC;
 }
 
-int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
-		struct list_head *arp_head, struct list_head *adj_head) {
-
-	char vrf[32 + 1];
-	memset(vrf, 0, sizeof(vrf));
+int del_table_by_vrf(struct arp_table *s,struct list_head *arp_head, struct list_head *adj_head) {
 
 	struct list_head *pos, *next;
 
@@ -61,24 +61,17 @@ int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 
 	struct adj_table *padj;
 
-	fscanf(infp, "%s", vrf);
-
-	printf("vrf=%s\n", vrf);
-
 	/*删除邻接表*/
 	list_for_each_safe(pos,next,adj_head)
 	{
 		padj = list_entry(pos, struct adj_table, list);
-		if (strcmp(padj->str_vrf, vrf) == 0) {
-//			printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
-			if (show_log == CLOSE_LOG) {
+		if (strcmp(padj->str_vrf, s->str_vrf) == 0) {
+			/*标志老化节点*/
+			padj->counter--;
+//			fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+//					padj->str_ip, padj->str_mac, padj->str_vid,
+//					padj->str_interface);
 
-			} else {
-				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-						padj->str_ip, padj->str_mac, padj->str_vid,
-						padj->str_interface);
-
-			}
 			list_del_init(pos);
 			free(padj);
 		}
@@ -88,7 +81,7 @@ int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 	list_for_each_safe(pos,next,arp_head)
 	{
 		parp = list_entry(pos, struct arp_table, list);
-		if (strcmp(parp->str_vrf, vrf) == 0) {
+		if (strcmp(parp->str_vrf, s->str_vrf) == 0) {
 			list_del_init(pos);
 			free(parp);
 		}
@@ -96,11 +89,8 @@ int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 	return APP_SUCC;
 }
 
-int del_table_by_vid(FILE *infp, FILE *outfp, int show_log,
-		struct list_head *mac_head, struct list_head *adj_head) {
-
-	char vid[4 + 1];
-	memset(vid, 0, sizeof(vid));
+int del_table_by_vid(struct mac_table *s,struct list_head *mac_head,
+		struct list_head *adj_head) {
 
 	struct list_head *pos, *next;
 
@@ -108,22 +98,16 @@ int del_table_by_vid(FILE *infp, FILE *outfp, int show_log,
 
 	struct adj_table *padj;
 
-	fscanf(infp, "%s", vid);
-
-	printf("vid=%s\n", vid);
-
 	/*删除邻接表*/
 	list_for_each_safe(pos,next,adj_head)
 	{
 		padj = list_entry(pos, struct adj_table, list);
-		if (strcmp(padj->str_vid, vid) == 0) {
-			if (show_log == CLOSE_LOG) {
-
-			} else {
-				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-						padj->str_ip, padj->str_mac, padj->str_vid,
-						padj->str_interface);
-			}
+		if (strcmp(padj->str_vid,s->str_vid) == 0) {
+			/*标志老化节点*/
+			padj->counter--;
+//				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+//						padj->str_ip, padj->str_mac, padj->str_vid,
+//						padj->str_interface);
 			list_del_init(pos);
 			free(padj);
 		}
@@ -133,7 +117,7 @@ int del_table_by_vid(FILE *infp, FILE *outfp, int show_log,
 	list_for_each_safe(pos,next,mac_head)
 	{
 		pmac = list_entry(pos, struct mac_table, list);
-		if (strcmp(pmac->str_vid, vid) == 0) {
+		if (strcmp(pmac->str_vid, s->str_vid) == 0) {
 			list_del_init(pos);
 			free(pmac);
 		}
@@ -146,6 +130,9 @@ int free_adj_table(struct list_head *head) {
 
 	struct list_head *pos, *next;
 	struct adj_table *p;
+
+	ASSERT(head);
+
 	list_for_each_safe(pos,next,head)
 	{
 		p = list_entry(pos, struct adj_table, list);
@@ -185,6 +172,10 @@ int look_up_node(struct list_head *sarp_head,
 	struct arp_table *parp_t;
 	struct mac_table *pmac_t;
 	struct adj_table sadj;
+
+	ASSERT(sarp_head);
+	ASSERT(smac_head);
+	ASSERT(sadj_head);
 
 	memset(&sadj, 0, sizeof(struct adj_table));
 

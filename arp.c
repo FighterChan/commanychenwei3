@@ -27,14 +27,17 @@ int add_arp_table(struct arp_table *s, struct list_head *head) {
 	struct arp_table *p;
 	struct list_head *pos,*next;
 
-#if 0
+	ASSERT(s);
+	ASSERT(head);
+
+#if 1
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
 		if(p && strcmp(p->str_vrf,s->str_vrf) == 0
 				&& strcmp(p->str_ip,s->str_ip) == 0
 				&& strcmp(p->str_mac,s->str_mac) == 0
 				&& strcmp(p->str_vid,s->str_vid) == 0) {
-			return -1;
+			return APP_ERR;
 		}
 	}
 #endif
@@ -51,22 +54,17 @@ int add_arp_table(struct arp_table *s, struct list_head *head) {
 	return APP_SUCC;
 }
 
-int del_arp_table(FILE *infp,struct list_head *head) {
-
-	struct arp_key {
-		char vrf[32 + 1];
-		char ip[16 + 1];
-	}s_key = {{0},{0}};
+int del_arp_table(struct arp_table *s,struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct arp_table *p;
-	fscanf(infp, "%s%s", s_key.vrf,s_key.ip);
 
-	printf("vrf=%s,ip=%s\n",s_key.vrf,s_key.ip);
+	ASSERT(s);
+	ASSERT(head);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
-		if ((strcmp(p->str_vrf,s_key.vrf) == 0) && (strcmp(p->str_ip,s_key.ip))) {
+		if ((strcmp(p->str_vrf,s->str_vrf) == 0) && (strcmp(p->str_ip,s->str_ip) == 0)) {
 			list_del_init(pos);
 			free(p);
 		}
@@ -78,6 +76,9 @@ int free_arp_table(struct list_head *head) {
 
 	struct list_head *pos,*next;
 	struct arp_table *p;
+
+	ASSERT(head);
+
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
 		list_del_init(pos);
