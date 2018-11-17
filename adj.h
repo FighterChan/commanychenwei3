@@ -15,7 +15,7 @@ struct adj_table {
 	struct list_head list;
 };
 
-int add_adj_table(FILE *infp, struct list_head *head);
+int add_adj_table(struct adj_table *s, struct list_head *head);
 
 int free_adj_table(struct list_head *head);
 

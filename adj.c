@@ -17,20 +17,38 @@
 #include <stdlib.h>
 #include <string.h>
 
-//int add_adj_table(struct list_head *arp_head,struct list_head *mac_head,struct list_head *adj_head) {
+int add_adj_table(struct adj_table *s, struct list_head *head) {
 
-//	struct adj_table *p;
-//	MALLOC(struct adj_table,p);
-//	struct arp_table *parp;
-//	MALLOC(struct arp_table,parp);
-//	struct mac_table *pmac;
-//	MALLOC(struct mac_table,pmac);
-//
-//
-//	list_add_tail(&p->list,head);
+	struct adj_table *p;
+	struct list_head *pos,*next;
 
-//	return APP_SUCC;
-//}
+#if 1
+	list_for_each_safe(pos,next,head) {
+		p = list_entry(pos,struct adj_table,list);
+		if(p && strcmp(p->str_vid,s->str_vid) == 0
+				&& strcmp(p->str_interface,s->str_interface) == 0
+				&& strcmp(p->str_mac,s->str_mac) == 0
+				&& strcmp(p->str_ip,s->str_ip) == 0
+				&& strcmp(p->str_vrf,s->str_vrf) == 0) {
+			return -1;
+		}
+	}
+#endif
+
+	MALLOC(struct adj_table,p);
+
+	strcpy(p->str_vid,s->str_vid);
+	strcpy(p->str_interface,s->str_interface);
+	strcpy(p->str_mac,s->str_mac);
+	strcpy(p->str_ip,s->str_ip);
+	strcpy(p->str_vrf,s->str_vrf);
+
+	list_add_tail(&p->list,head);
+
+
+
+	return APP_SUCC;
+}
 
 int del_table_by_vrf(FILE *infp, FILE *outfp, int show_log,
 		struct list_head *arp_head, struct list_head *adj_head) {
@@ -145,7 +163,7 @@ int write_file(FILE *outfp,int show_log,int adj_count,struct list_head *head) {
 	}
 	/*输出*/
 	int i = 0;
-	list_for_each(pos,head) {
+	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos, struct adj_table, list);
 //		printf("file %s,line %d,show_log = %d\n",__FILE__,__LINE__,show_log);
 		if (show_log == CLOSE_LOG
@@ -196,10 +214,11 @@ int look_up_node(int *out_count,struct list_head *sarp_head,
 	int count = 0;
 	struct list_head *arp_pos, *arp_next;
 	struct list_head *mac_pos, *mac_next;
-	struct list_head *adj_pos, *adj_next;
 	struct arp_table *parp_t;
 	struct mac_table *pmac_t;
-	struct adj_table *padj_t;
+	struct adj_table  sadj;
+
+	memset(&sadj,0,sizeof(struct adj_table));
 
 	list_for_each_safe(arp_pos,arp_next,sarp_head)
 	{
@@ -210,26 +229,14 @@ int look_up_node(int *out_count,struct list_head *sarp_head,
 			if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
 					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
 
-//				list_for_each(adj_pos,sadj_head) {
-//					padj_t = list_entry(adj_pos,struct adj_table,list);
-//					if (padj_t && strcmp(padj_t->str_vrf, parp_t->str_vrf) == 0
-//							&& strcmp(padj_t->str_ip, parp_t->str_ip) == 0
-//							&& strcmp(padj_t->str_mac, parp_t->str_mac) == 0
-//							&& strcmp(padj_t->str_vid, parp_t->str_vid)
-//							&& strcmp(padj_t->str_interface, pmac_t->str_interface)
-//									== 0) {
-//						return -1;
-//					}
-//				}
-				MALLOC(struct adj_table, padj_t);
-				strcpy(padj_t->str_vrf, parp_t->str_vrf);
-				strcpy(padj_t->str_ip, parp_t->str_ip);
-				strcpy(padj_t->str_mac, parp_t->str_mac);
-				strcpy(padj_t->str_vid, parp_t->str_vid);
-				strcpy(padj_t->str_interface, pmac_t->str_interface);
-				/*更新*/
-				list_add_tail(&padj_t->list, sadj_head);
-				count++;
+				strcpy(sadj.str_interface, pmac_t->str_interface);
+				strcpy(sadj.str_ip, parp_t->str_ip);
+				strcpy(sadj.str_vrf, parp_t->str_vrf);
+				strcpy(sadj.str_mac, parp_t->str_mac);
+				strcpy(sadj.str_vid, parp_t->str_vid);
+				if (add_adj_table(&sadj, sadj_head) == APP_SUCC) {
+					count++;
+				}
 			}
 		}
 	}

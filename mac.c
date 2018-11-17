@@ -27,28 +27,27 @@
 #include "list.h"
 #include <stdio.h>
 
-int add_mac_table(FILE *infp, struct list_head *head) {
+int add_mac_table(struct mac_table *s, struct list_head *head) {
 
 	struct mac_table *p;
-	struct mac_table s = {{0},{0},{0},NULL};
-	struct list_head *pos;
+	struct list_head *pos,*next;
 
-	fscanf(infp, "%s%s%s", s.str_vid,
-			s.str_mac, s.str_interface);
-	list_for_each(pos,head) {
+#if 0
+	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
-		if(strcmp(p->str_vid,s.str_vid) == 0
-				&& strcmp(p->str_interface,s.str_interface) == 0
-				&& strcmp(p->str_mac,s.str_mac) == 0) {
+		if(p && strcmp(p->str_vid,s->str_vid) == 0
+				&& strcmp(p->str_interface,s->str_interface) == 0
+				&& strcmp(p->str_mac,s->str_mac) == 0) {
 			return -1;
 		}
 	}
+#endif
 
 	MALLOC(struct mac_table,p);
 
-	strcpy(p->str_vid,s.str_vid);
-	strcpy(p->str_interface,s.str_interface);
-	strcpy(p->str_mac,s.str_mac);
+	strcpy(p->str_vid,s->str_vid);
+	strcpy(p->str_interface,s->str_interface);
+	strcpy(p->str_mac,s->str_mac);
 
 
 	list_add_tail(&p->list,head);

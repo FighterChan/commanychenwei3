@@ -200,5 +200,5 @@ add-arp efg 20.0.9.9   0010.0000.0001  20
 add-arp efg 20.0.9.10   0010.0000.0001  20
 add-mac 20 0010.0000.0001 ten0/1
 add-mac 10 0000.0000.0001 ten0/2
-del-vid 20
 show-adj-all
+

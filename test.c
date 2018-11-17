@@ -14,15 +14,18 @@
 #include <stdlib.h>
 #include "list.h"
 #include "app.h"
+#include "jhash.h"
 
 #if !DEBUG
 #else
 struct node {
 	char name[32];
+	char sex[8];
+	int year;
 	struct list_head list;
 };
 
-struct list_head shead;
+struct list_head shead[1024];
 
 
 int list_test(struct list_head *head) {
@@ -30,12 +33,13 @@ int list_test(struct list_head *head) {
 	struct node *pnode;
 
 	int i;
-	for (i = 0; i < 10000; ++i) {
+	for (i = 0; i < 1024; ++i) {
 		pnode = (struct node *)malloc(sizeof(struct node));
 		if(!pnode) {
 			return -1;
 		}
 		sprintf(pnode->name,"name:%d",i);
+		sprintf(pnode->sex,"sex:%d",i);
 		list_add_tail(&pnode->list,head);
 	}
 	return 0;
