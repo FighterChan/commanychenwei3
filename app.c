@@ -81,18 +81,18 @@ int main(int argc, char **argv) {
 		if(strcmp(cmd,"add-arp") == 0) {
 			nRet = fscanf(infp, "%s%s%s%s", sarp.str_vrf, sarp.str_ip, sarp.str_mac, sarp.str_vid);
 			printf("nRet = %d\n",nRet);
-			if(nRet < 0){
-				break;
-			}
+//			if(nRet < 0){
+//				break;
+//			}
 			printf("%s%s%s%s\n", sarp.str_vrf, sarp.str_ip, sarp.str_mac, sarp.str_vid);
 			add_arp_table(&sarp,&arp_head);
 			SET_FLAG(flg,ADD_ARP);
 		} else if(strcmp(cmd,"add-mac") == 0) {
 			nRet = fscanf(infp, "%s%s%s",smac.str_vid, smac.str_mac, smac.str_interface);
 			printf("nRet = %d\n",nRet);
-			if(nRet < 0){
-				break;
-			}
+//			if(nRet < 0){
+//				break;
+//			}
 			printf("%s%s%s\n",smac.str_vid, smac.str_mac, smac.str_interface);
 			add_mac_table(&smac,&mac_head);
 			SET_FLAG(flg,ADD_MAC);
@@ -117,11 +117,11 @@ int main(int argc, char **argv) {
 			show_log = OPEN_LOG;
 		}
 
-		look_up_node(&adj_count, &arp_head, &mac_head, &adj_head);
+		look_up_node(&arp_head, &mac_head, &adj_head);
 
 		if(CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0) {
 			printf("11111\n");
-			write_file(outfp, show_log, adj_count, &adj_head);
+			write_file(outfp, &adj_head);
 		}
 
 //		if (show_log == OPEN_LOG) {
