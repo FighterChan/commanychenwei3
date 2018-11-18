@@ -48,6 +48,7 @@ int add_arp_table(struct arp_table *s, struct list_head *head) {
 	strcpy(p->str_ip,s->str_ip);
 	strcpy(p->str_mac,s->str_mac);
 	strcpy(p->str_vid,s->str_vid);
+	p->counter++;
 
 	list_add_tail(&p->list,head);
 
@@ -65,8 +66,11 @@ int del_arp_table(struct arp_table *s,struct list_head *head) {
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
 		if ((strcmp(p->str_vrf,s->str_vrf) == 0) && (strcmp(p->str_ip,s->str_ip) == 0)) {
-			list_del_init(pos);
-			free(p);
+//			list_del_init(pos);
+//			free(p);
+			if(p->counter > 0) {
+				p->counter--;
+			}
 		}
 	}
 	return APP_SUCC;

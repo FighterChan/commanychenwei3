@@ -51,7 +51,7 @@ int add_mac_table(struct mac_table *s, struct list_head *head) {
 	strcpy(p->str_vid,s->str_vid);
 	strcpy(p->str_interface,s->str_interface);
 	strcpy(p->str_mac,s->str_mac);
-
+	p->counter++;
 
 	list_add_tail(&p->list,head);
 
@@ -69,8 +69,11 @@ int del_mac_table(struct mac_table *s,struct list_head *head) {
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
 		if ((strcmp(p->str_vid,s->str_vid) == 0) && (strcmp(p->str_mac,s->str_mac) == 0)) {
-			list_del_init(pos);
-			free(p);
+//			list_del_init(pos);
+//			free(p);
+			if(p->counter > 0) {
+				p->counter--;
+			}
 		}
 	}
 	return APP_SUCC;

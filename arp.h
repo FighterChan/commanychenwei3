@@ -10,6 +10,7 @@ struct arp_table {
     char str_ip[16 + 1];
     char str_mac[16 + 1];
     char str_vid[4 + 1];
+    int counter;
 	struct list_head list;
 };
 

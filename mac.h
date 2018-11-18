@@ -9,6 +9,7 @@ struct mac_table {
     char str_vid[4 + 1];
     char str_mac[16 + 1];
     char str_interface[32 + 1];
+    int counter;
 	struct list_head list;
 };
 
