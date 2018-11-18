@@ -51,8 +51,6 @@ int main(int argc, char **argv) {
 	char outpath[32];
 	memset(outpath,0,sizeof(outpath));
 
-	int show_log = CLOSE_LOG;
-
 	CLEAR_FLAG_ALL(flg);
 
 	int adj_count = 0;
@@ -95,21 +93,21 @@ int main(int argc, char **argv) {
 			SET_FLAG(flg,DEL_MAC);
 		} else if (strcmp(cmd,"del-vrf") == 0) {
 			fscanf(infp,"%s",sarp.str_vrf);
-			del_table_by_vrf(&sarp,&arp_head,&adj_head);
+			del_table_by_vrf(outfp,&sarp,&arp_head,&adj_head);
 			SET_FLAG(flg,DEL_VRF);
 		} else if (strcmp(cmd,"del-vid") == 0) {
 			fscanf(infp,"%s",smac.str_vid);
-			del_table_by_vid(&smac,&mac_head,&adj_head);
+			del_table_by_vid(outfp,&smac,&mac_head,&adj_head);
 			SET_FLAG(flg,DEL_VID);
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
 			SET_FLAG(flg,SHOW_ADJ_ALL);
 		} else if (strcmp(cmd,"show-adj") == 0) {
 			SET_FLAG(flg,SHOW_ADJ);
 		} else if (strcmp(cmd,"show-log") == 0) {
-			show_log = OPEN_LOG;
+			SET_FLAG(flg,SHOW_LOG);
 		}
 
-		look_up_node(&arp_head, &mac_head, &adj_head);
+		look_up_node(outfp,&arp_head, &mac_head, &adj_head);
 
 		if(CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0) {
 			write_file(outfp, &adj_head);

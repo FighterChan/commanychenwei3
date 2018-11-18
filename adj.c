@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int add_adj_table(struct adj_table *s, struct list_head *head) {
+int add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
 
 	struct adj_table *p;
 	struct list_head *pos, *next;
@@ -48,12 +48,33 @@ int add_adj_table(struct adj_table *s, struct list_head *head) {
 	strcpy(p->str_ip, s->str_ip);
 	strcpy(p->str_vrf, s->str_vrf);
 	p->counter++;
+	if (CHECK_FLAG(flg,SHOW_LOG) != 0) {
+		fprintf(fp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf, p->str_ip,
+				p->str_mac, p->str_vid, p->str_interface);
+	}
 	list_add_tail(&p->list, head);
 
 	return APP_SUCC;
 }
 
-int del_table_by_vrf(struct arp_table *s,struct list_head *arp_head, struct list_head *adj_head) {
+int del_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
+
+	struct adj_table *p;
+	struct list_head *pos,*next;
+
+	list_for_each_safe(pos,next,head) {
+		p = list_entry(pos,struct adj_table,list);
+		if(strcmp(p->str_vrf,s->str_vrf) == 0 && strcmp(p->str_ip,s->str_ip) == 0) {
+			list_del_init(pos);
+			free(p);
+		}
+	}
+
+	return APP_SUCC;
+}
+
+int del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
+		struct list_head *adj_head) {
 
 	struct list_head *pos, *next;
 
@@ -68,10 +89,11 @@ int del_table_by_vrf(struct arp_table *s,struct list_head *arp_head, struct list
 		if (strcmp(padj->str_vrf, s->str_vrf) == 0) {
 			/*标志老化节点*/
 			padj->counter--;
-//			fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-//					padj->str_ip, padj->str_mac, padj->str_vid,
-//					padj->str_interface);
-
+			if (CHECK_FLAG(flg,SHOW_LOG) != 0) {
+				fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+						padj->str_ip, padj->str_mac, padj->str_vid,
+						padj->str_interface);
+			}
 			list_del_init(pos);
 			free(padj);
 		}
@@ -89,7 +111,7 @@ int del_table_by_vrf(struct arp_table *s,struct list_head *arp_head, struct list
 	return APP_SUCC;
 }
 
-int del_table_by_vid(struct mac_table *s,struct list_head *mac_head,
+int del_table_by_vid(FILE *fp,struct mac_table *s, struct list_head *mac_head,
 		struct list_head *adj_head) {
 
 	struct list_head *pos, *next;
@@ -102,12 +124,14 @@ int del_table_by_vid(struct mac_table *s,struct list_head *mac_head,
 	list_for_each_safe(pos,next,adj_head)
 	{
 		padj = list_entry(pos, struct adj_table, list);
-		if (strcmp(padj->str_vid,s->str_vid) == 0) {
+		if (strcmp(padj->str_vid, s->str_vid) == 0) {
 			/*标志老化节点*/
 			padj->counter--;
-//				fprintf(outfp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-//						padj->str_ip, padj->str_mac, padj->str_vid,
-//						padj->str_interface);
+			if (CHECK_FLAG(flg,SHOW_LOG) != 0) {
+				fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
+						padj->str_ip, padj->str_mac, padj->str_vid,
+						padj->str_interface);
+			}
 			list_del_init(pos);
 			free(padj);
 		}
@@ -142,30 +166,31 @@ int free_adj_table(struct list_head *head) {
 	return APP_SUCC;
 }
 
-int write_file(FILE *outfp,struct list_head *head) {
+int write_file(FILE *outfp, struct list_head *head) {
 
 	struct list_head *pos, *next;
 	struct adj_table *p;
 	int index;
 
 	index = 0;
-	list_for_each(pos,head) {
+	list_for_each(pos,head)
+	{
 		index++;
 	}
 
-	fprintf(outfp,"count:%d\n",index);
+	fprintf(outfp, "count:%d\n", index);
 
 	list_for_each_safe(pos,next,head)
 	{
 		p = list_entry(pos, struct adj_table, list);
-		fprintf(outfp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf, p->str_ip,
+		fprintf(outfp, "%s %s %s %s %s\n",p->str_vrf, p->str_ip,
 				p->str_mac, p->str_vid, p->str_interface);
 	}
 	return APP_SUCC;
 }
 
-int look_up_node(struct list_head *sarp_head,
-		struct list_head *smac_head, struct list_head *sadj_head) {
+int look_up_node(FILE *fp,struct list_head *sarp_head, struct list_head *smac_head,
+		struct list_head *sadj_head) {
 
 	struct list_head *arp_pos, *arp_next;
 	struct list_head *mac_pos, *mac_next;
@@ -185,15 +210,18 @@ int look_up_node(struct list_head *sarp_head,
 		list_for_each_safe(mac_pos,mac_next,smac_head)
 		{
 			pmac_t = list_entry(mac_pos, struct mac_table, list);
-			if ((strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
-					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0)) {
 
-				strcpy(sadj.str_interface, pmac_t->str_interface);
-				strcpy(sadj.str_ip, parp_t->str_ip);
-				strcpy(sadj.str_vrf, parp_t->str_vrf);
-				strcpy(sadj.str_mac, parp_t->str_mac);
-				strcpy(sadj.str_vid, parp_t->str_vid);
-				add_adj_table(&sadj, sadj_head);
+			strcpy(sadj.str_interface, pmac_t->str_interface);
+			strcpy(sadj.str_ip, parp_t->str_ip);
+			strcpy(sadj.str_vrf, parp_t->str_vrf);
+			strcpy(sadj.str_mac, parp_t->str_mac);
+			strcpy(sadj.str_vid, parp_t->str_vid);
+
+			if (strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
+					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0) {
+				add_adj_table(fp,&sadj, sadj_head);
+			} else {
+				del_adj_table(fp,&sadj,sadj_head);
 			}
 		}
 	}
