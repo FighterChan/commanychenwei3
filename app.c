@@ -71,9 +71,9 @@ int main(int argc, char **argv) {
 
 		nRet = fscanf(infp,"%s",cmd);
 		printf("%s\n",cmd);
-//		if(nRet < 0){
-//			break;
-//		}
+		if(nRet < 0){
+			break;
+		}
 #if 1
 		if(strcmp(cmd,"add-arp") == 0) {
 			fscanf(infp, "%s%s%s%s", sarp.str_vrf, sarp.str_ip, sarp.str_mac, sarp.str_vid);
@@ -106,7 +106,6 @@ int main(int argc, char **argv) {
 		} else if (strcmp(cmd,"show-log") == 0) {
 			SET_FLAG(flg,SHOW_LOG);
 		}
-
 		look_up_node(outfp,&arp_head, &mac_head, &adj_head);
 
 		if(CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0) {

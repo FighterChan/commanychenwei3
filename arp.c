@@ -22,36 +22,37 @@
  *@ function:
  */
 
-int add_arp_table(struct arp_table *s, struct list_head *head) {
+struct arp_table *add_arp_table(struct arp_table *s, struct list_head *head) {
 
-	struct arp_table *p;
+	struct arp_table *p,*new_p;
 	struct list_head *pos,*next;
 
-	ASSERT(s);
-	ASSERT(head);
+//	ASSERT(s);
+//	ASSERT(head);
 
 #if 1
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
+		/*key相同，则更新已有表项*/
 		if(p && strcmp(p->str_vrf,s->str_vrf) == 0
-				&& strcmp(p->str_ip,s->str_ip) == 0
-				&& strcmp(p->str_mac,s->str_mac) == 0
-				&& strcmp(p->str_vid,s->str_vid) == 0) {
-			return APP_ERR;
+				&& strcmp(p->str_ip,s->str_ip) == 0) {
+				strcpy(p->str_mac,s->str_mac);
+				strcpy(p->str_vid,s->str_vid);
+			return p;
 		}
 	}
 #endif
 
-	MALLOC(struct arp_table,p);
+	MALLOC(struct arp_table,new_p);
 
-	strcpy(p->str_vrf,s->str_vrf);
-	strcpy(p->str_ip,s->str_ip);
-	strcpy(p->str_mac,s->str_mac);
-	strcpy(p->str_vid,s->str_vid);
+	strcpy(new_p->str_vrf,s->str_vrf);
+	strcpy(new_p->str_ip,s->str_ip);
+	strcpy(new_p->str_mac,s->str_mac);
+	strcpy(new_p->str_vid,s->str_vid);
 
-	list_add_tail(&p->list,head);
+	list_add_tail(&new_p->list,head);
 
-	return APP_SUCC;
+	return new_p;
 }
 
 int del_arp_table(struct arp_table *s,struct list_head *head) {
@@ -59,8 +60,8 @@ int del_arp_table(struct arp_table *s,struct list_head *head) {
 	struct list_head *pos,*next;
 	struct arp_table *p;
 
-	ASSERT(s);
-	ASSERT(head);
+//	ASSERT(s);
+//	ASSERT(head);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);
@@ -77,7 +78,7 @@ int free_arp_table(struct list_head *head) {
 	struct list_head *pos,*next;
 	struct arp_table *p;
 
-	ASSERT(head);
+//	ASSERT(head);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct arp_table,list);

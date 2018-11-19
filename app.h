@@ -47,7 +47,9 @@ do { \
 #define MALLOC(type,x) \
 do { \
 	x = (type *)malloc(sizeof(type)); \
-	ASSERT(x); \
+	if(!x){ \
+		return NULL; \
+	} \
 }while(0)
 
 #define MALLOC_FREE(x) \
