@@ -395,14 +395,14 @@ int update_daj_node(FILE *fp, struct list_head *sarp_head,
 
 	memset(&sadj, 0, sizeof(struct adj_table));
 
-	/*给adj节点设置老化标志*/
+	/*1.给adj节点设置老化标志*/
 	list_for_each_safe(adj_pos,adj_next,sadj_head)
 	{
 		padj_t = list_entry(adj_pos, struct adj_table, list);
 		padj_t->counter = 1;
 	}
 
-	/*查找生成的新节点*/
+	/*2.查询所有新增的adj表项,如果有跟旧表项重复，则去除老化标记；*/
 	list_for_each_safe(arp_pos,arp_next,sarp_head)
 	{
 		parp_t = list_entry(arp_pos, struct arp_table, list);
@@ -425,11 +425,12 @@ int update_daj_node(FILE *fp, struct list_head *sarp_head,
 		}
 	}
 
-	/*删除老化节点*/
+	/*3.删除老化节点；*/
 	del_adj_table(fp, sadj_head);
 
 	memset(&sadj, 0, sizeof(struct adj_table));
 
+	/*4.添加新节点;*/
 	list_for_each_safe(arp_pos,arp_next,sarp_head)
 	{
 		parp_t = list_entry(arp_pos, struct arp_table, list);
