@@ -17,6 +17,116 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
+
+/*
+ *  结点有序插入adj链表
+ */
+int adj_add_sort(struct adj_table *new,struct list_head *head) {
+	struct adj_table *padj;
+	struct list_head *pos, *next;
+	struct adj_table *temp;
+
+	ASSERT(new);
+	ASSERT(head);
+
+	if (list_empty(head)) {
+		list_add_tail(&(new->list), head);
+		return APP_SUCC;
+	}
+
+	temp = NULL;
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
+		if (!strcmp(padj->str_vrf, new->str_vrf) && !strcmp(padj->str_ip, new->str_ip)
+				&& !strcmp(padj->str_mac, new->str_mac) && !strcmp(padj->str_vid,new->str_vid)) {
+			temp = padj;
+			/* 存在前4个成员与new一样，且第5个成员比new大的结点，new插在该结点前面 */
+			if (strcmp(padj->str_interface, new->str_interface) > 0) {
+				list_add_tail(&(new->list), &(padj->list));
+				return APP_SUCC;
+			}
+		}
+	}
+	/* 存在前4个成员与new一样，但第5个成员都比new小，new插到这类结点的最后 */
+	if (temp != NULL) {
+		list_add(&(new->list), &(temp->list));
+		return APP_SUCC;
+	}
+
+	temp = NULL;
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
+		if (!strcmp(padj->str_vrf, new->str_vrf) && !strcmp(padj->str_ip, new->str_ip)
+				&& !strcmp(padj->str_mac, new->str_mac)) {
+			temp = padj;
+			/* 存在前3个成员与new一样，且第4个成员比new大的结点，new插在该结点前面 */
+			if (padj->str_vid > new->str_vid) {
+				list_add_tail(&(new->list), &(padj->list));
+				return APP_SUCC;
+			}
+		}
+	}
+	/* 存在前3个成员与new一样，但第4个成员都比new小，new插到这类结点的最后 */
+	if (temp != NULL) {
+		list_add(&(new->list), &(temp->list));
+		return APP_SUCC;
+	}
+
+	temp = NULL;
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
+		if (!strcmp(padj->str_vrf, new->str_vrf) && !strcmp(padj->str_ip, new->str_ip)) {
+			temp = padj;
+			/* 存在前2个成员与new一样，且第3个成员比new大的结点，new插在该结点前面 */
+			if (strcmp(padj->str_mac, new->str_mac) > 0) {
+				list_add_tail(&(new->list), &(padj->list));
+				return APP_SUCC;
+			}
+		}
+	}
+	/* 存在前2个成员与new一样，但第3个成员都比new小，new插到这类结点的最后 */
+	if (temp != NULL) {
+		list_add(&(new->list), &(temp->list));
+		return APP_SUCC;
+	}
+
+	temp = NULL;
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
+		if (!strcmp(padj->str_vrf, new->str_vrf)) {
+			temp = padj;
+			/* 存在前1个成员与new一样，且第2个成员比new大的结点，new插在该结点前面 */
+			if (ntohl(inet_addr(padj->str_ip)) > ntohl(inet_addr(new->str_ip))) { /* str_ip要转成长整形比较 */
+				list_add_tail(&(new->list), &(padj->list));
+				return APP_SUCC;
+			}
+		}
+	}
+	/* 存在前1个成员与new一样，但第2个成员都比new小，new插到这类结点的最后 */
+	if (temp != NULL) {
+		list_add(&(new->list), &(temp->list));
+		return APP_SUCC;
+	}
+
+	/* 没有任何成员与new一样，找到第1个成员比new大的结点，new插在该结点前面 */
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
+		if (strcmp(padj->str_vrf, new->str_vrf) > 0) {
+			list_add_tail(&(new->list), &(padj->list));
+			return APP_SUCC;
+		}
+	}
+	/* new是最大的，直接插到尾部 */
+	list_add_tail(&(new->list), head);
+
+	return APP_SUCC;
+}
 
 int add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
 
@@ -53,8 +163,8 @@ int add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
 		fprintf(fp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf, p->str_ip,
 				p->str_mac, p->str_vid, p->str_interface);
 	}
-	list_add_tail(&p->list, head);
-
+//	list_add_tail(&p->list, head);
+	adj_add_sort(p,head);
 	return APP_SUCC;
 }
 
@@ -188,33 +298,61 @@ int free_adj_table(struct list_head *head) {
 	return APP_SUCC;
 }
 
-int write_file(FILE *outfp, struct list_head *head) {
+int write_file(FILE *outfp,char *vrf, struct list_head *head) {
 
 	struct list_head *pos, *next;
 	struct adj_table *p;
 	int index;
+	char vrf_name[32];
 
+	ASSERT(vrf);
 	ASSERT(outfp);
 	ASSERT(head);
 
+	memset(vrf_name,0,sizeof(vrf_name));
+
+	conver_vrfname(vrf,vrf_name);
+
+	/*数出总的adj表项条数*/
 	index = 0;
-	list_for_each(pos,head)
-	{
-		index++;
-	}
-
-	fprintf(outfp, "count:%d\n", index);
-
 	list_for_each_safe(pos,next,head)
 	{
 		p = list_entry(pos, struct adj_table, list);
-		fprintf(outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip, p->str_mac,
-				p->str_vid, p->str_interface);
+		if(CHECK_FLAG(flg,SHOW_ADJ) != 0){
+			if(strcmp(p->str_vrf,vrf_name) == 0) {
+				index++;
+			}
+		} else {
+			index++;
+		}
+	}
+
+	/*adj表项条数、写入文件*/
+	fprintf(outfp, "count:%d\n", index);
+
+	/*写入adj表项*/
+	list_for_each_safe(pos,next,head)
+	{
+		p = list_entry(pos, struct adj_table, list);
+
+		if(CHECK_FLAG(flg,SHOW_ADJ) != 0){
+			if(strcmp(p->str_vrf,vrf_name) == 0) {
+				fprintf(outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip, p->str_mac,
+						p->str_vid, p->str_interface);
+			}
+		} else {
+			fprintf(outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip, p->str_mac,
+					p->str_vid, p->str_interface);
+		}
 	}
 	return APP_SUCC;
 }
 
-int adj_lookup(struct adj_table *s,struct list_head *head) {
+/*
+ * 	新增加的表项跟已存在的表项一样，则去除老化标记，防止新表项被删除
+ * */
+
+int look_up_adj(struct adj_table *s,struct list_head *head) {
 	struct adj_table *padj;
 	struct list_head *pos, *next;
 
@@ -225,7 +363,6 @@ int adj_lookup(struct adj_table *s,struct list_head *head) {
 	{
 		padj = list_entry(pos, struct adj_table, list);
 
-		/*新增加的表项跟已存在的表项一样，则去除老化标记，防止新表项被删除*/
 		if (strcmp(padj->str_vrf, s->str_vrf) == 0 && strcmp(padj->str_ip, s->str_ip) == 0
 				&& strcmp(padj->str_mac, s->str_mac) == 0 && strcmp(padj->str_vid, s->str_vid) == 0
 				&& strcmp(padj->str_interface, s->str_interface) == 0) {
@@ -237,7 +374,10 @@ int adj_lookup(struct adj_table *s,struct list_head *head) {
 	return APP_SUCC;
 }
 
-int look_up_node(FILE *fp, struct list_head *sarp_head,
+/*
+ * 	动态更新adj表项
+ * */
+int update_daj_node(FILE *fp, struct list_head *sarp_head,
 		struct list_head *smac_head, struct list_head *sadj_head) {
 
 	struct list_head *arp_pos, *arp_next;
@@ -280,7 +420,7 @@ int look_up_node(FILE *fp, struct list_head *sarp_head,
 				strcpy(sadj.str_vid, parp_t->str_vid);
 
 				/*所有新旧节点*/
-				adj_lookup(&sadj,sadj_head);
+				look_up_adj(&sadj,sadj_head);
 			}
 		}
 	}

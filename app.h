@@ -18,6 +18,8 @@ enum {
 	OPEN_LOG
 };
 
+extern int flg;
+/*各个命令标志位*/
 enum {
 	ADD_ARP = 			(unsigned long)(1 << 0),
 	ADD_MAC = 			(unsigned long)(1 << 1),
@@ -58,8 +60,6 @@ do { \
 }while(0)
 
 #define THREAD_GLOB(x)          ((x)->zg)
-
-extern int flg;
 
 /* body of app.h */
 #endif /* _APP_H_ */

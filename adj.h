@@ -27,9 +27,9 @@ int del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
 int del_table_by_vid(FILE *fp,struct mac_table *s, struct list_head *mac_head,
 		struct list_head *adj_head);
 
-int write_file(FILE *outfp,struct list_head *head);
+int write_file(FILE *outfp, char *vrf, struct list_head *head);
 
-int look_up_node(FILE *fp,struct list_head *sarp_head, struct list_head *smac_head,
+int update_daj_node(FILE *fp,struct list_head *sarp_head, struct list_head *smac_head,
 		struct list_head *sadj_head);
 
 /* body of adj.h */

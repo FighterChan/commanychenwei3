@@ -51,9 +51,10 @@ int main(int argc, char **argv) {
 	char outpath[32];
 	memset(outpath,0,sizeof(outpath));
 
-	CLEAR_FLAG_ALL(flg);
+	char vrf[32 + 1];
+	memset(vrf,0,sizeof(vrf));
 
-	int adj_count = 0;
+	CLEAR_FLAG_ALL(flg);
 
 	FILE *infp;
 	infp = fopen(argv[1],"r");
@@ -70,7 +71,6 @@ int main(int argc, char **argv) {
 	while(!feof(infp)) {
 
 		nRet = fscanf(infp,"%s",cmd);
-		printf("%s\n",cmd);
 		if(nRet < 0){
 			break;
 		}
@@ -102,14 +102,17 @@ int main(int argc, char **argv) {
 		} else if (strcmp(cmd,"show-adj-all") == 0) {
 			SET_FLAG(flg,SHOW_ADJ_ALL);
 		} else if (strcmp(cmd,"show-adj") == 0) {
+			fscanf(infp,"%s",vrf);
 			SET_FLAG(flg,SHOW_ADJ);
 		} else if (strcmp(cmd,"show-log") == 0) {
 			SET_FLAG(flg,SHOW_LOG);
 		}
-		look_up_node(outfp,&arp_head, &mac_head, &adj_head);
 
-		if(CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0) {
-			write_file(outfp, &adj_head);
+		update_daj_node(outfp,&arp_head, &mac_head, &adj_head);
+
+		if(CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0 || CHECK_FLAG(flg,SHOW_ADJ) != 0) {
+			write_file(outfp,vrf,&adj_head);
+			memset(vrf,0,sizeof(vrf));
 		}
 
 		CLEAR_FLAG(flg,SHOW_ADJ_ALL);
@@ -117,7 +120,7 @@ int main(int argc, char **argv) {
 		memset(&sarp,0,sizeof(struct arp_table));
 		memset(&smac,0,sizeof(struct mac_table));
 #endif
-	}	/* 输出adj到文件 */
+	}
 
 	fclose(infp);
 	fclose(outfp);
