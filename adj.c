@@ -18,13 +18,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct adj_table *add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
+int add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head) {
 
-	struct adj_table *p,*new_p;
+	struct adj_table *p;
 	struct list_head *pos, *next;
 
-//	ASSERT(s);
-//	ASSERT(head);
+	ASSERT(s);
+	ASSERT(head);
 
 #if 1
 	list_for_each_safe(pos,next,head)
@@ -36,32 +36,35 @@ struct adj_table *add_adj_table(FILE *fp, struct adj_table *s, struct list_head 
 				&& strcmp(p->str_mac,s->str_mac) == 0
 				&& strcmp(p->str_vid,s->str_vid) == 0) {
 
-			return p;
+			return APP_ERR;
 		}
 	}
 #endif
 
-	MALLOC(struct adj_table, new_p);
+	MALLOC(struct adj_table, p);
 
-	strcpy(new_p->str_vid, s->str_vid);
-	strcpy(new_p->str_interface, s->str_interface);
-	strcpy(new_p->str_mac, s->str_mac);
-	strcpy(new_p->str_ip, s->str_ip);
-	strcpy(new_p->str_vrf, s->str_vrf);
-	new_p->counter = 0;
+	strcpy(p->str_vid, s->str_vid);
+	strcpy(p->str_interface, s->str_interface);
+	strcpy(p->str_mac, s->str_mac);
+	strcpy(p->str_ip, s->str_ip);
+	strcpy(p->str_vrf, s->str_vrf);
+	p->counter = 0;
 	if (CHECK_FLAG(flg,SHOW_LOG) != 0) {
-		fprintf(fp, "%s %s %s %s %s %s\n", "add-adj", new_p->str_vrf, new_p->str_ip,
-				new_p->str_mac, new_p->str_vid, new_p->str_interface);
+		fprintf(fp, "%s %s %s %s %s %s\n", "add-adj", p->str_vrf, p->str_ip,
+				p->str_mac, p->str_vid, p->str_interface);
 	}
-	list_add_tail(&new_p->list, head);
+	list_add_tail(&p->list, head);
 
-	return new_p;
+	return APP_SUCC;
 }
 
 int del_adj_table(FILE *fp, struct list_head *head) {
 
 	struct adj_table *p;
 	struct list_head *pos, *next;
+
+	ASSERT(fp);
+	ASSERT(head);
 
 	list_for_each_safe(pos,next,head)
 	{
@@ -87,6 +90,12 @@ int del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
 	struct arp_table *parp;
 
 	struct adj_table *padj;
+
+	ASSERT(fp);
+	ASSERT(s);
+	ASSERT(arp_head);
+	ASSERT(adj_head);
+
 #if 0
 	/*删除邻接表*/
 	list_for_each_safe(pos,next,adj_head)
@@ -125,6 +134,13 @@ int del_table_by_vid(FILE *fp, struct mac_table *s, struct list_head *mac_head,
 	struct mac_table *pmac;
 
 	struct adj_table *padj;
+
+	ASSERT(fp);
+	ASSERT(s);
+	ASSERT(mac_head);
+	ASSERT(adj_head);
+
+
 #if 0
 	/*删除邻接表*/
 	list_for_each_safe(pos,next,adj_head)
@@ -161,7 +177,7 @@ int free_adj_table(struct list_head *head) {
 	struct list_head *pos, *next;
 	struct adj_table *p;
 
-//	ASSERT(head);
+	ASSERT(head);
 
 	list_for_each_safe(pos,next,head)
 	{
@@ -177,6 +193,9 @@ int write_file(FILE *outfp, struct list_head *head) {
 	struct list_head *pos, *next;
 	struct adj_table *p;
 	int index;
+
+	ASSERT(outfp);
+	ASSERT(head);
 
 	index = 0;
 	list_for_each(pos,head)
@@ -195,26 +214,27 @@ int write_file(FILE *outfp, struct list_head *head) {
 	return APP_SUCC;
 }
 
-/*
- *adj_lookup：查询adj表项
- */
-struct adj_table *adj_lookup(const char *vrf, const char *ip,
-    const char *mac, const char *vid, const char *intf,struct list_head *head)
-{
-    struct adj_table *padj;
-    struct list_head *pos, *next;
+int adj_lookup(struct adj_table *s,struct list_head *head) {
+	struct adj_table *padj;
+	struct list_head *pos, *next;
 
-    list_for_each_safe(pos, next, head) {
-        padj = list_entry(pos, struct adj_table, list);
+	ASSERT(s);
+	ASSERT(head);
 
-        if (!strcmp(padj->str_vrf, vrf) && !strcmp(padj->str_ip, ip) && !strcmp(padj->str_mac, mac) &&
-                (!strcmp(padj->str_vid,vid)) && !strcmp(padj->str_interface, intf)) {
+	list_for_each_safe(pos, next, head)
+	{
+		padj = list_entry(pos, struct adj_table, list);
 
-            return padj;
-        }
-    }
+		/*新增加的表项跟已存在的表项一样，则去除老化标记，防止新表项被删除*/
+		if (strcmp(padj->str_vrf, s->str_vrf) == 0 && strcmp(padj->str_ip, s->str_ip) == 0
+				&& strcmp(padj->str_mac, s->str_mac) == 0 && strcmp(padj->str_vid, s->str_vid) == 0
+				&& strcmp(padj->str_interface, s->str_interface) == 0) {
 
-    return NULL;
+			padj->counter = 0;
+		}
+	}
+
+	return APP_SUCC;
 }
 
 int look_up_node(FILE *fp, struct list_head *sarp_head,
@@ -228,12 +248,10 @@ int look_up_node(FILE *fp, struct list_head *sarp_head,
 	struct adj_table *padj_t;
 	struct adj_table sadj;
 
-	struct adj_table *adj_node;
-
-
-//	ASSERT(sarp_head);
-//	ASSERT(smac_head);
-//	ASSERT(sadj_head);
+	ASSERT(fp);
+	ASSERT(sarp_head);
+	ASSERT(smac_head);
+	ASSERT(sadj_head);
 
 	memset(&sadj, 0, sizeof(struct adj_table));
 
@@ -255,18 +273,14 @@ int look_up_node(FILE *fp, struct list_head *sarp_head,
 			if (strcmp(parp_t->str_mac, pmac_t->str_mac) == 0
 					&& strcmp(parp_t->str_vid, pmac_t->str_vid) == 0) {
 
-				adj_node = adj_lookup(parp_t->str_vrf, parp_t->str_ip, parp_t->str_mac,
-						parp_t->str_vid, pmac_t->str_interface,sadj_head);
+				strcpy(sadj.str_interface, pmac_t->str_interface);
+				strcpy(sadj.str_ip, parp_t->str_ip);
+				strcpy(sadj.str_vrf, parp_t->str_vrf);
+				strcpy(sadj.str_mac, parp_t->str_mac);
+				strcpy(sadj.str_vid, parp_t->str_vid);
 
-				if(adj_node != NULL) {
-					adj_node->counter = 0;
-				}
-//				strcpy(sadj.str_interface, pmac_t->str_interface);
-//				strcpy(sadj.str_ip, parp_t->str_ip);
-//				strcpy(sadj.str_vrf, parp_t->str_vrf);
-//				strcpy(sadj.str_mac, parp_t->str_mac);
-//				strcpy(sadj.str_vid, parp_t->str_vid);
-//				add_adj_table(fp, &sadj,sadj_head);
+				/*所有新旧节点*/
+				adj_lookup(&sadj,sadj_head);
 			}
 		}
 	}

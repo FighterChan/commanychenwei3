@@ -12,7 +12,7 @@ struct mac_table {
 	struct list_head list;
 };
 
-struct mac_table *add_mac_table(struct mac_table *s, struct list_head *head);
+int add_mac_table(struct mac_table *s, struct list_head *head);
 int del_mac_table(struct mac_table *s,struct list_head *head);
 int free_mac_table(struct list_head *head);
 

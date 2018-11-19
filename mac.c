@@ -27,13 +27,13 @@
 #include "list.h"
 #include <stdio.h>
 
-struct mac_table *add_mac_table(struct mac_table *s, struct list_head *head) {
+int add_mac_table(struct mac_table *s, struct list_head *head) {
 
-	struct mac_table *p,*new_p;
+	struct mac_table *p;
 	struct list_head *pos,*next;
 
-//	ASSERT(s);
-//	ASSERT(head);
+	ASSERT(s);
+	ASSERT(head);
 
 #if 1
 	list_for_each_safe(pos,next,head) {
@@ -42,21 +42,21 @@ struct mac_table *add_mac_table(struct mac_table *s, struct list_head *head) {
 		if(p && strcmp(p->str_vid,s->str_vid) == 0
 				&& strcmp(p->str_mac,s->str_mac) == 0) {
 			strcpy(p->str_interface,s->str_interface);
-			return p;
+			return APP_ERR;
 		}
 	}
 #endif
 
-	MALLOC(struct mac_table,new_p);
+	MALLOC(struct mac_table,p);
 
-	strcpy(new_p->str_vid,s->str_vid);
-	strcpy(new_p->str_interface,s->str_interface);
-	strcpy(new_p->str_mac,s->str_mac);
+	strcpy(p->str_vid,s->str_vid);
+	strcpy(p->str_interface,s->str_interface);
+	strcpy(p->str_mac,s->str_mac);
 
 
-	list_add_tail(&new_p->list,head);
+	list_add_tail(&p->list,head);
 
-	return new_p;
+	return APP_SUCC;
 }
 
 int del_mac_table(struct mac_table *s,struct list_head *head) {
@@ -64,8 +64,8 @@ int del_mac_table(struct mac_table *s,struct list_head *head) {
 	struct list_head *pos,*next;
 	struct mac_table *p;
 
-//	ASSERT(s);
-//	ASSERT(head);
+	ASSERT(s);
+	ASSERT(head);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
@@ -82,7 +82,7 @@ int free_mac_table(struct list_head *head) {
 	struct list_head *pos,*next;
 	struct mac_table *p;
 
-//	ASSERT(head);
+	ASSERT(head);
 
 	list_for_each_safe(pos,next,head) {
 		p = list_entry(pos,struct mac_table,list);
