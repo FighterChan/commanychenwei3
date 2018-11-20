@@ -13,23 +13,24 @@
 #define APP_ERR  (-1)
 #define CMD_MAX (9)
 
-enum {
-	CLOSE_LOG,
-	OPEN_LOG
+enum
+{
+  CLOSE_LOG, OPEN_LOG
 };
 
 extern int flg;
 /*各个命令标志位*/
-enum {
-	ADD_ARP = 			(unsigned long)(1 << 0),
-	ADD_MAC = 			(unsigned long)(1 << 1),
-	DEL_ARP = 			(unsigned long)(1 << 2),
-	DEL_MAC = 			(unsigned long)(1 << 3),
-	DEL_VRF = 			(unsigned long)(1 << 4),
-	DEL_VID = 			(unsigned long)(1 << 5),
-	SHOW_ADJ_ALL = 		(unsigned long)(1 << 6),
-	SHOW_ADJ = 			(unsigned long)(1 << 7),
-	SHOW_LOG = 			(unsigned long)(1 << 8)
+enum
+{
+  ADD_ARP = (unsigned long) (1 << 0),
+  ADD_MAC = (unsigned long) (1 << 1),
+  DEL_ARP = (unsigned long) (1 << 2),
+  DEL_MAC = (unsigned long) (1 << 3),
+  DEL_VRF = (unsigned long) (1 << 4),
+  DEL_VID = (unsigned long) (1 << 5),
+  SHOW_ADJ_ALL = (unsigned long) (1 << 6),
+  SHOW_ADJ = (unsigned long) (1 << 7),
+  SHOW_LOG = (unsigned long) (1 << 8)
 };
 
 #define SET_FLAG(x,y)		(x |= y)
