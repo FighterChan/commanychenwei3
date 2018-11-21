@@ -15,22 +15,29 @@
 #include <stdio.h>
 #include <string.h>
 
-int conver_filename(char *infile, char *outfile) {
+int
+conver_filename (char *infile, char *outfile)
+{
 
     ASSERT(infile);
     ASSERT(outfile);
 
     char *token;
     char *outpath = outfile;
-    if ((token = strsep(&infile, ".")) != NULL) {
-        sprintf(outpath, "%s%s", token, "_result.txt");
-    } else {
-        return APP_ERR;
-    }
+    if ((token = strsep (&infile, ".")) != NULL)
+        {
+            sprintf (outpath, "%s%s", token, "_result.txt");
+        }
+    else
+        {
+            return APP_ERR;
+        }
     return APP_SUCC;
 }
 
-int conver_vrfname(char *s, char *name) {
+int
+conver_vrfname (char *s, char *name)
+{
 
     ASSERT(s);
     ASSERT(name);
@@ -38,11 +45,13 @@ int conver_vrfname(char *s, char *name) {
     char *token;
     char *outname = name;
     int index = 0;
-    while ((token = strsep(&s, "=")) != NULL) {
-        if (index == 1) {
-            strcpy(outname, token);
+    while ((token = strsep (&s, "=")) != NULL)
+        {
+            if (index == 1)
+                {
+                    strcpy (outname, token);
+                }
+            index++;
         }
-        index++;
-    }
     return APP_SUCC;
 }

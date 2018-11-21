@@ -2,22 +2,26 @@
 #ifndef _MAC_H_
 #define _MAC_H_
 
-#include "list.h"
 #include <stdio.h>
+#include "app.h"
+#include "list.h"
 
-struct mac_table {
-    char str_vid[4 + 1];
-    char str_mac[16 + 1];
-    char str_interface[32 + 1];
-    struct list_head list;
+struct mac_table
+{
+    int ini_vid;
+    char str_mac[MAC_LEN_MAX];
+    char str_interface[INTF_LEN_MAX];
+    struct hlist_node list;
 };
 
 int
-add_mac_table(struct mac_table *s, struct list_head *head);
+add_mac_table (struct mac_table *s, struct hlist_head *head);
 int
-del_mac_table(struct mac_table *s, struct list_head *head);
+del_mac_table (struct mac_table *s, struct hlist_head *head);
 int
-free_mac_table(struct list_head *head);
+free_mac_table (struct hlist_head *head);
+u32
+get_mac_key (u32 vid, const char *mac);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */

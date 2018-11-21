@@ -2,23 +2,27 @@
 #ifndef _ARP_H_
 #define _ARP_H_
 
-#include "list.h"
 #include <stdio.h>
+#include "list.h"
+#include "app.h"
 
-struct arp_table {
-    char str_vrf[32 + 1];
-    char str_ip[16 + 1];
-    char str_mac[16 + 1];
-    char str_vid[4 + 1];
-    struct list_head list;
+struct arp_table
+{
+    char str_vrf[VRF_LEN_MAX];
+    char str_ip[IP_LEN_MAX];
+    char str_mac[MAC_LEN_MAX];
+    int int_vid;
+    struct hlist_node list;
 };
 
 int
-add_arp_table(struct arp_table *s, struct list_head *head);
+add_arp_table (struct arp_table *s, struct hlist_head *head);
 int
-del_arp_table(struct arp_table *s, struct list_head *head);
+del_arp_table (struct arp_table *s, struct hlist_head *head);
 int
-free_arp_table(struct list_head *head);
+free_arp_table (struct hlist_head *head);
+u32
+get_arp_key (const char *vrf, const char *ip);
 
 /* body of arp.h */
 #endif /* _ARP_H_ */

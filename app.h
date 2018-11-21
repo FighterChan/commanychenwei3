@@ -2,24 +2,26 @@
 #ifndef _APP_H_
 #define _APP_H_
 
-#include "arp.h"
-#include "mac.h"
-#include "adj.h"
-#include "list.h"
-
-#define DEBUG 0
+#define DEBUG (0)
 
 #define APP_SUCC (0)
 #define APP_ERR  (-1)
-#define CMD_MAX (9)
 
-enum {
-    CLOSE_LOG, OPEN_LOG
-};
+/* 各个链表结构字段长度定义 */
+#define VRF_LEN_MAX    (32 + 1)
+#define IP_LEN_MAX     (16 + 1)
+#define MAC_LEN_MAX    (16 + 1)
+#define VID_LEN_MAX    (4094)
+#define VID_LEN_MIN    (1)
+#define INTF_LEN_MAX   (32 + 1)
+
+/*链表数组最大长度*/
+#define HLIST_LEN_MAX  (1024)
 
 extern int flg;
 /*各个命令标志位*/
-enum {
+enum
+{
     ADD_ARP = (unsigned long) (1 << 0),
     ADD_MAC = (unsigned long) (1 << 1),
     DEL_ARP = (unsigned long) (1 << 2),
@@ -36,29 +38,6 @@ enum {
 #define CHECK_FLAG_ALL(x)	(x != 0)
 #define CLEAR_FLAG(x,y)		(x &= ~(y))
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
-
-#define ASSERT(x)\
-do { \
-	if (!x) { \
-	printf("error in \n file---> %s\n line---> %d\n",__FILE__,__LINE__); \
-	return APP_ERR; \
-	} \
-}while(0)
-
-#define MALLOC(type,x) \
-do { \
-	x = (type *)malloc(sizeof(type)); \
-	ASSERT(x); \
-}while(0)
-
-#define MALLOC_FREE(x) \
-do { \
-	if(x) { \
-		free(x); \
-	} \
-}while(0)
-
-#define THREAD_GLOB(x)          ((x)->zg)
 
 /* body of app.h */
 #endif /* _APP_H_ */

@@ -8,13 +8,13 @@
 #include <stdio.h>
 
 struct adj_table {
-    char str_vrf[32 + 1];
-    char str_ip[16 + 1];
-    char str_mac[16 + 1];
-    char str_vid[4 + 1];
-    char str_interface[32 + 1];
+    char str_vrf[VRF_LEN_MAX];
+    char str_ip[IP_LEN_MAX];
+    char str_mac[MAC_LEN_MAX];
+    int int_vid;
+    char str_interface[INTF_LEN_MAX];
     int counter;
-    struct list_head list;
+    struct hlist_node list;
 };
 
 int
@@ -38,6 +38,10 @@ write_file(FILE *outfp, char *vrf, struct list_head *head);
 int
 update_daj_node(FILE *fp, struct list_head *sarp_head,
         struct list_head *smac_head, struct list_head *sadj_head);
+
+u32
+get_adj_key (const char *vrf, const char *ip);
+
 
 /* body of adj.h */
 #endif /* _ADJ_H_ */
