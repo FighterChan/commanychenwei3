@@ -5,20 +5,19 @@
 #include "list.h"
 #include <stdio.h>
 
-struct mac_table
-{
-  char str_vid[4 + 1];
-  char str_mac[16 + 1];
-  char str_interface[32 + 1];
-  struct list_head list;
+struct mac_table {
+    char str_vid[4 + 1];
+    char str_mac[16 + 1];
+    char str_interface[32 + 1];
+    struct list_head list;
 };
 
 int
-add_mac_table (struct mac_table *s, struct list_head *head);
+add_mac_table(struct mac_table *s, struct list_head *head);
 int
-del_mac_table (struct mac_table *s, struct list_head *head);
+del_mac_table(struct mac_table *s, struct list_head *head);
 int
-free_mac_table (struct list_head *head);
+free_mac_table(struct list_head *head);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */
