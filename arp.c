@@ -20,10 +20,7 @@
 int
 add_arp_table (struct arp_table *s, struct hlist_head *head)
 {
-    u32 key;
-    key = get_arp_key (s->str_vrf, s->str_ip);
-
-    hlist_add_head (&s->list, &head[key]);
+    hlist_add_head (&s->list, head);
     return APP_SUCC;
 }
 

@@ -39,5 +39,12 @@ enum
 #define CLEAR_FLAG(x,y)		(x &= ~(y))
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
 
+#define CMD_MAX (9)
+struct exe_cmd {
+    char *cmd;
+    char *line;
+    int type;
+};
+
 /* body of app.h */
 #endif /* _APP_H_ */

@@ -152,11 +152,7 @@ adj_add_sort (struct adj_table *new, struct list_head *head)
 int
 add_adj_table (struct adj_table *s, struct hlist_head *head)
 {
-    u32 key;
-    key = get_adj_key (s->str_vrf, s->str_ip);
-
-    // ! 在此写malloc申请
-    hlist_add_head (&s->list, &head[key]);
+    hlist_add_head (&s->list, head);
     return APP_SUCC;
 }
 
@@ -402,24 +398,26 @@ look_up_adj (struct adj_table *s, struct list_head *head)
  * 	动态更新adj表项
  * */
 int
-update_daj_node (FILE *fp, u32 arp_key, struct hlist_head *arp_head,
-                 struct hlist_head *mac_head, struct hlist_head *adj_head)
+arp_update_daj_node (struct adj_table *padj, struct hlist_head *arp_head,
+                     struct hlist_head *mac_head, struct hlist_head *adj_head)
 {
     struct arp_table *parp;
     struct hlist_node *narp;
-    struct arp_table *pmac;
+    struct mac_table *pmac;
     struct hlist_node *nmac;
 
+    u32 adj_key;
+
     u32 mac_key;
-    hlist_for_each_entry_safe(parp,narp,&arp_head[arp_key],list)
+    hlist_for_each_entry_safe(parp,narp,arp_head,list)
         {
             mac_key = get_mac_key (parp->str_vrf, parp->str_ip);
-            hlist_for_each_entry_safe(pmac,nmac,&mac_head[mac_key],list)
+            hlist_for_each_entry_safe(pmac,nmac,mac_head,list)
                 {
                     /*根据arp key 找到vid、mac,根据vid、mac得到Mac表的key,添加adj表*/
                     /*arp表的key 与 adj表的key是一样的*/
-
-                    add_adj_table ();
+                    adj_key = get_adj_key (parp->str_vrf, parp->str_ip);
+                    add_adj_table (padj, &adj_head[arp_key]);
                 }
         }
 
@@ -432,5 +430,4 @@ get_adj_key (const char *vrf, const char *ip)
     return (jhash_2words (jhash (vrf, strlen (vrf), 0),
                           jhash (ip, strlen (ip), 0)) % HLIST_LEN_MAX);
 }
-
 

@@ -20,9 +20,37 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct list_head arp_head;
-struct list_head mac_head;
-struct list_head adj_head;
+int
+read_cmd (const char *path)
+{
+    char *line = NULL, *tmp_buf;
+    size_t len;
+    ssize_t read;
+    char *name, *value;
+    FILE *fp;
+    fp = fopen (path, "r");
+    if (fp == NULL)
+        {
+            return APP_ERR;
+        }
+    while ((read = getline(&line, &len, fp)) != -1)
+      {
+        tmp_buf = line;
+        name = strsep(&tmp_buf, "=");
+        if (name == NULL)
+          continue;
+        if (strcmp(name, "") == 0)
+          continue;
+        value = strsep(&tmp_buf, "\n");
+        printf("%s ",value);
+      }
+
+    fclose (fp);
+}
+
+struct hlist_head arp_head[HLIST_LEN_MAX];
+struct hlist_head mac_head[HLIST_LEN_MAX];
+struct hlist_head adj_head[HLIST_LEN_MAX];
 
 #if !DEBUG
 
@@ -32,19 +60,23 @@ int
 main (int argc, char **argv)
 {
 
-    int i = 0;
+    u32 arp_key;
+    u32 mac_key;
+    u32 adj_key;
 
-    struct arp_table sarp;
-    struct mac_table smac;
+    struct arp_table *parp;
+    struct mac_table *pmac;
+    struct adj_table *padj;
 
-    memset (&sarp, 0, sizeof(struct arp_table));
-    memset (&smac, 0, sizeof(struct mac_table));
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            INIT_HLIST_HEAD(&arp_head[i]);
 
-    INIT_LIST_HEAD (&arp_head);
+            INIT_HLIST_HEAD(&mac_head[i]);
 
-    INIT_LIST_HEAD (&mac_head);
-
-    INIT_LIST_HEAD (&adj_head);
+            INIT_HLIST_HEAD(&adj_head[i]);
+        }
 
     char cmd[32];
     memset (cmd, 0, sizeof(cmd));
@@ -59,13 +91,22 @@ main (int argc, char **argv)
 
     FILE *infp;
     infp = fopen (argv[1], "r");
-    ASSERT(infp);
+    if (infp == NULL)
+        {
+            printf ("can not open input file!\n");
+            return APP_ERR;
+        }
 
     conver_filename (argv[1], outpath);
 
     FILE *outfp;
     outfp = fopen (outpath, "w");
-    ASSERT(outfp);
+    if (infp == NULL)
+        {
+            printf ("can not open output file!\n");
+            fclose (infp);
+            return APP_ERR;
+        }
 
     int nRet;
 
@@ -80,18 +121,29 @@ main (int argc, char **argv)
 #if 1
             if (strcmp (cmd, "add-arp") == 0)
                 {
-                    fscanf (infp, "%s%s%s%s", sarp.str_vrf, sarp.str_ip,
-                            sarp.str_mac, sarp.str_vid);
-                    add_arp_table (&sarp, &arp_head);
+                    parp = (struct arp_table *)malloc(sizeof(struct arp_table));
+                    if(parp == NULL) {
+                            retutn APP_ERR;
+                    }
+                    fscanf (infp, "%s%s%s%d", parp->str_vrf, parp->str_ip,
+                            parp->str_mac, parp->int_vid);
+                    arp_key = get_arp_key(parp->str_vrf,parp->str_ip);
+                    add_arp_table (parp, &arp_head[arp_key]);
                     SET_FLAG(flg, ADD_ARP);
                 }
             else if (strcmp (cmd, "add-mac") == 0)
                 {
-                    fscanf (infp, "%s%s%s", smac.str_vid, smac.str_mac,
-                            smac.str_interface);
-                    add_mac_table (&smac, &mac_head);
+                    pmac = (struct mac_table *)malloc(sizeof(struct mac_table));
+                        if(pmac == NULL) {
+                                retutn APP_ERR;
+                        }
+                    fscanf (infp, "%d%s%s", pmac->ini_vid, pmac->str_mac,
+                            pmac->str_interface);
+                    mac_key = get_mac_key(pmac->ini_vid,pmac->str_mac);
+                    add_mac_table (pmac, &mac_head[mac_key]);
                     SET_FLAG(flg, ADD_MAC);
                 }
+#if 0
             else if (strcmp (cmd, "del-arp") == 0)
                 {
                     fscanf (infp, "%s%s", sarp.str_vrf, sarp.str_ip);
@@ -116,6 +168,7 @@ main (int argc, char **argv)
                     del_table_by_vid (outfp, &smac, &mac_head, &adj_head);
                     SET_FLAG(flg, DEL_VID);
                 }
+#endif
             else if (strcmp (cmd, "show-adj-all") == 0)
                 {
                     SET_FLAG(flg, SHOW_ADJ_ALL);
@@ -148,10 +201,8 @@ main (int argc, char **argv)
 
     fclose (infp);
     fclose (outfp);
-    free_arp_table (&arp_head);
-    free_mac_table (&mac_head);
-    free_adj_table (&adj_head);
     return APP_SUCC;
 }
+
 #endif
 

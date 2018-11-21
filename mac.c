@@ -21,10 +21,7 @@
 int
 add_arp_table (struct mac_table *s, struct hlist_head *head)
 {
-    u32 key;
-    key = get_mac_key (s->ini_vid, s->str_mac);
-
-    hlist_add_head (&s->list, &head[key]);
+    hlist_add_head (&s->list, head);
     return APP_SUCC;
 }
 
