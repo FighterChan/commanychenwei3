@@ -22,12 +22,12 @@
 
 /* NOTE: Arguments are modified. */
 
-#define u32 unsigned int
-#define u16 unsigned short
-#define s32 int
-#define s16 short int
-#define u8  unsigned char
-#define s8  char
+typedef  long  s32;
+typedef  int   s16;
+typedef  char  s8;
+typedef unsigned long  u32;
+typedef unsigned int   u16;
+typedef unsigned char  u8;
 
 #define __jhash_mix(a, b, c) \
 { \
