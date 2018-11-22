@@ -19,9 +19,6 @@ int
 conver_filename (char *infile, char *outfile)
 {
 
-    ASSERT(infile);
-    ASSERT(outfile);
-
     char *token;
     char *outpath = outfile;
     if ((token = strsep (&infile, ".")) != NULL)
@@ -38,9 +35,6 @@ conver_filename (char *infile, char *outfile)
 int
 conver_vrfname (char *s, char *name)
 {
-
-    ASSERT(s);
-    ASSERT(name);
 
     char *token;
     char *outname = name;
