@@ -17,13 +17,17 @@ struct adj_table {
     struct hlist_node list;
 };
 
-int
-add_adj_table(FILE *fp, struct adj_table *s, struct list_head *head);
-int
-del_adj_table(FILE *fp, struct list_head *head);
+struct hlist_head adj_head[HLIST_LEN_MAX];
 
 int
-free_adj_table(struct list_head *head);
+init_adj_hash (void);
+int
+add_adj_table(struct adj_table *s);
+int
+del_adj_table(struct arp_table *s);
+
+int
+free_adj_table(void);
 
 int
 del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
@@ -31,13 +35,6 @@ del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
 int
 del_table_by_vid(FILE *fp, struct mac_table *s, struct list_head *mac_head,
         struct list_head *adj_head);
-
-int
-write_file(FILE *outfp, char *vrf, struct list_head *head);
-
-int
-update_daj_node(FILE *fp, struct list_head *sarp_head,
-        struct list_head *smac_head, struct list_head *sadj_head);
 
 u32
 get_adj_key (const char *vrf, const char *ip);

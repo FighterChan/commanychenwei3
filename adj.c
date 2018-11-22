@@ -19,9 +19,113 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+int
+init_adj_hash (void)
+{
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            INIT_HLIST_HEAD(&adj_head[i]);
+        }
+    return APP_SUCC;
+}
+
+struct adj_table *
+look_up_adj (struct adj_table *s)
+{
+
+    struct adj_table *p;
+    struct hlist_node *n;
+    u32 key;
+    key = get_adj_key (s->str_vrf, s->str_ip);
+    if (hlist_empty (&adj_head[key]))
+        {
+            printf ("没有该节点！\n");
+            return NULL;
+        }
+    hlist_for_each_entry_safe(p, n, &adj_head[key],list)
+        {
+            /*加上某个条件后*/
+            return p;
+        }
+    return NULL;
+}
+
+int
+add_adj_table (struct adj_table *s)
+{
+    struct adj_table *p;
+    struct hlist_node *n;
+    u32 key;
+    key = get_adj_key (s->str_vrf, s->str_ip);
+    p = look_up_adj (s);
+    if (p == NULL)
+        {
+            p = (struct adj_table *) malloc (sizeof(struct adj_table));
+            if (p == NULL)
+                {
+                    return APP_ERR;
+                }
+            copy_to_adj (s, p);
+            hlist_add_head (&p->list, &adj_head[key]);
+            return APP_SUCC;
+        }
+    printf ("adj重复值,不再添加!!!\n");
+    return APP_ERR;
+}
+
+int
+del_adj_table (struct adj_table *s)
+{
+
+    struct adj_table *p;
+    struct hlist_node *n;
+    u32 key;
+    key = get_adj_key (s->str_vrf, s->str_ip);
+    if (hlist_empty (&adj_head[key]))
+        {
+            printf ("没有该节点！\n");
+            return APP_ERR;
+        }
+    hlist_for_each_entry_safe(p, n, &adj_head[key],list)
+        {
+            /*加上某个条件后*/
+            hlist_del (&p->list);
+            return APP_SUCC;
+        }
+    return APP_ERR;
+}
+
+int
+free_adj_table (void)
+{
+    struct adj_table *p;
+    struct hlist_node *n;
+
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            hlist_for_each_entry_safe(p,n,&head[i],list)
+                {
+                    hlist_del (&p->list);
+                    free (p);
+                    p = NULL;
+                }
+        }
+    return APP_SUCC;
+}
+
+u32
+get_adj_key (const char *vrf, const char *ip)
+{
+    return (jhash_2words (jhash (vrf, strlen (vrf), 0),
+                          jhash (ip, strlen (ip), 0), 0) % HLIST_LEN_MAX);
+}
+
 /*
  *  结点有序插入adj链表
  */
+#if 0
 int
 adj_add_sort (struct adj_table *new, struct list_head *head)
 {
@@ -148,286 +252,4 @@ adj_add_sort (struct adj_table *new, struct list_head *head)
 
     return APP_SUCC;
 }
-
-int
-add_adj_table (struct adj_table *s, struct hlist_head *head)
-{
-    hlist_add_head (&s->list, head);
-    return APP_SUCC;
-}
-
-int
-del_adj_table (FILE *fp, struct list_head *head)
-{
-
-    struct adj_table *p;
-    struct list_head *pos, *next;
-
-    ASSERT (fp);
-    ASSERT (head);
-
-    list_for_each_safe(pos,next,head)
-        {
-            p = list_entry(pos, struct adj_table, list);
-            if (p->counter == 1)
-                {
-                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
-                        {
-                            fprintf (fp, "%s %s %s %s %s %s\n", "del-adj",
-                                     p->str_vrf, p->str_ip, p->str_mac,
-                                     p->str_vid, p->str_interface);
-                        }
-                    list_del_init (pos);
-                    free (p);
-                }
-        }
-
-    return APP_SUCC;
-}
-
-int
-del_table_by_vrf (FILE *fp, struct arp_table *s, struct list_head *arp_head,
-                  struct list_head *adj_head)
-{
-
-    struct list_head *pos, *next;
-
-    struct arp_table *parp;
-
-    struct adj_table *padj;
-
-    ASSERT (fp);
-    ASSERT (s);
-    ASSERT (arp_head);
-    ASSERT (adj_head);
-
-#if 0
-    /*删除邻接表*/
-    list_for_each_safe(pos,next,adj_head)
-        {
-            padj = list_entry(pos, struct adj_table, list);
-            if (strcmp(padj->str_vrf, s->str_vrf) == 0)
-                {
-                    /*标志老化节点*/
-                    padj->counter--;
-                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
-                        {
-                            fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-                                    padj->str_ip, padj->str_mac, padj->str_vid,
-                                    padj->str_interface);
-                        }
-                    list_del_init(pos);
-                    free(padj);
-                }
-        }
 #endif
-    /*删除arp表*/
-    list_for_each_safe(pos,next,arp_head)
-        {
-            parp = list_entry(pos, struct arp_table, list);
-            if (strcmp (parp->str_vrf, s->str_vrf) == 0)
-                {
-                    list_del_init (pos);
-                    free (parp);
-                }
-        }
-    return APP_SUCC;
-}
-
-int
-del_table_by_vid (FILE *fp, struct mac_table *s, struct list_head *mac_head,
-                  struct list_head *adj_head)
-{
-
-    struct list_head *pos, *next;
-
-    struct mac_table *pmac;
-
-    struct adj_table *padj;
-
-    ASSERT (fp);
-    ASSERT (s);
-    ASSERT (mac_head);
-    ASSERT (adj_head);
-
-#if 0
-    /*删除邻接表*/
-    list_for_each_safe(pos,next,adj_head)
-        {
-            padj = list_entry(pos, struct adj_table, list);
-            if (strcmp(padj->str_vid, s->str_vid) == 0)
-                {
-                    /*标志老化节点*/
-                    padj->counter--;
-                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
-                        {
-                            fprintf(fp, "%s %s %s %s %s %s\n", "del-adj", padj->str_vrf,
-                                    padj->str_ip, padj->str_mac, padj->str_vid,
-                                    padj->str_interface);
-                        }
-                    list_del_init(pos);
-                    free(padj);
-                }
-        }
-#endif
-    /*删除mac表*/
-    list_for_each_safe(pos,next,mac_head)
-        {
-            pmac = list_entry(pos, struct mac_table, list);
-            if (strcmp (pmac->str_vid, s->str_vid) == 0)
-                {
-                    list_del_init (pos);
-                    free (pmac);
-                }
-        }
-
-    return APP_SUCC;
-}
-
-int
-free_adj_table (struct list_head *head)
-{
-
-    struct list_head *pos, *next;
-    struct adj_table *p;
-
-    ASSERT (head);
-
-    list_for_each_safe(pos,next,head)
-        {
-            p = list_entry(pos, struct adj_table, list);
-            list_del_init (pos);
-            free (p);
-        }
-    return APP_SUCC;
-}
-
-int
-write_file (FILE *outfp, char *vrf, struct list_head *head)
-{
-
-    struct list_head *pos, *next;
-    struct adj_table *p;
-    int index;
-    char vrf_name[32];
-
-    ASSERT (vrf);
-    ASSERT (outfp);
-    ASSERT (head);
-
-    memset (vrf_name, 0, sizeof(vrf_name));
-
-    conver_vrfname (vrf, vrf_name);
-
-    /*数出总的adj表项条数*/
-    index = 0;
-    list_for_each_safe(pos,next,head)
-        {
-            p = list_entry(pos, struct adj_table, list);
-            if (CHECK_FLAG(flg,SHOW_ADJ) != 0)
-                {
-                    if (strcmp (p->str_vrf, vrf_name) == 0)
-                        {
-                            index++;
-                        }
-                }
-            else
-                {
-                    index++;
-                }
-        }
-
-    /*adj表项条数、写入文件*/
-    fprintf (outfp, "count:%d\n", index);
-
-    /*写入adj表项*/
-    list_for_each_safe(pos,next,head)
-        {
-            p = list_entry(pos, struct adj_table, list);
-
-            if (CHECK_FLAG(flg,SHOW_ADJ) != 0)
-                {
-                    if (strcmp (p->str_vrf, vrf_name) == 0)
-                        {
-                            fprintf (outfp, "%s %s %s %s %s\n", p->str_vrf,
-                                     p->str_ip, p->str_mac, p->str_vid,
-                                     p->str_interface);
-                        }
-                }
-            else
-                {
-                    fprintf (outfp, "%s %s %s %s %s\n", p->str_vrf, p->str_ip,
-                             p->str_mac, p->str_vid, p->str_interface);
-                }
-        }
-    return APP_SUCC;
-}
-
-/*
- * 	新增加的表项跟已存在的表项一样，则去除老化标记，防止新表项被删除
- * */
-
-int
-look_up_adj (struct adj_table *s, struct list_head *head)
-{
-    struct adj_table *padj;
-    struct list_head *pos, *next;
-
-    ASSERT (s);
-    ASSERT (head);
-
-    list_for_each_safe(pos, next, head)
-        {
-            padj = list_entry(pos, struct adj_table, list);
-
-            if (strcmp (padj->str_vrf, s->str_vrf) == 0
-                    && strcmp (padj->str_ip, s->str_ip) == 0
-                    && strcmp (padj->str_mac, s->str_mac) == 0
-                    && strcmp (padj->str_vid, s->str_vid) == 0
-                    && strcmp (padj->str_interface, s->str_interface) == 0)
-                {
-
-                    padj->counter = 0;
-                }
-        }
-
-    return APP_SUCC;
-}
-
-/*
- * 	动态更新adj表项
- * */
-int
-arp_update_daj_node (struct adj_table *padj, struct hlist_head *arp_head,
-                     struct hlist_head *mac_head, struct hlist_head *adj_head)
-{
-    struct arp_table *parp;
-    struct hlist_node *narp;
-    struct mac_table *pmac;
-    struct hlist_node *nmac;
-
-    u32 adj_key;
-
-    u32 mac_key;
-    hlist_for_each_entry_safe(parp,narp,arp_head,list)
-        {
-            mac_key = get_mac_key (parp->str_vrf, parp->str_ip);
-            hlist_for_each_entry_safe(pmac,nmac,mac_head,list)
-                {
-                    /*根据arp key 找到vid、mac,根据vid、mac得到Mac表的key,添加adj表*/
-                    /*arp表的key 与 adj表的key是一样的*/
-                    adj_key = get_adj_key (parp->str_vrf, parp->str_ip);
-                    add_adj_table (padj, &adj_head[arp_key]);
-                }
-        }
-
-    return APP_SUCC;
-}
-
-u32
-get_adj_key (const char *vrf, const char *ip)
-{
-    return (jhash_2words (jhash (vrf, strlen (vrf), 0),
-                          jhash (ip, strlen (ip), 0)) % HLIST_LEN_MAX);
-}
-
