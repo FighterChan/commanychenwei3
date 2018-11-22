@@ -67,7 +67,13 @@ add_mac_table (struct mac_table *s)
                 }
             copy_to_mac (p, s);
             hlist_add_head (&p->list, &mac_head[key]);
-            printf("mac添加成功!\n");
+//            printf ("mac添加成功!\n");
+            return APP_SUCC;
+        }
+    else
+        {
+            /*更新*/
+//            copy_to_mac (p, s);
             return APP_SUCC;
         }
 //    printf ("mac重复值,不再添加!!!\n");
@@ -84,7 +90,7 @@ del_mac_table (struct mac_table *s)
     key = get_mac_key (s->int_vid, s->str_mac);
     if (hlist_empty (&mac_head[key]))
         {
-            printf ("没有该节点！\n");
+//            printf ("没有该节点！\n");
             return APP_ERR;
         }
     hlist_for_each_entry_safe(p, n, &mac_head[key],list)
