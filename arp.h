@@ -15,14 +15,20 @@ struct arp_table
     struct hlist_node list;
 };
 
+struct hlist_head arp_head[HLIST_LEN_MAX];
+
 int
-add_arp_table (struct arp_table *s, struct hlist_head *head);
+init_arp_hash (void);
 int
-del_arp_table (struct arp_table *s, struct hlist_head *head);
+add_arp_table (struct arp_table *s);
 int
-free_arp_table (struct hlist_head *head);
+del_arp_table (struct arp_table *s);
+int
+free_arp_table (void);
 u32
 get_arp_key (const char *vrf, const char *ip);
+int
+copy_to_arp (struct arp_table *s, struct arp_table *p);
 
 /* body of arp.h */
 #endif /* _ARP_H_ */
