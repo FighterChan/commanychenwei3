@@ -22,6 +22,9 @@
 
 #if !DEBUG
 
+int
+update_table (struct arp_table *arp, struct mac_table *mac);
+
 int flg;
 
 int
@@ -66,9 +69,9 @@ main (int argc, char **argv)
             return APP_ERR;
         }
 
-    init_arp_hash();
-    init_mac_hash();
-    init_adj_hash();
+    init_arp_hash ();
+    init_mac_hash ();
+    init_adj_hash ();
 
     int nRet;
 
@@ -76,6 +79,7 @@ main (int argc, char **argv)
         {
 
             nRet = fscanf (infp, "%s", cmd);
+            printf ("%s\n", cmd);
             if (nRet < 0)
                 {
                     break;
@@ -134,7 +138,7 @@ main (int argc, char **argv)
                     SET_FLAG(flg, SHOW_LOG);
                 }
 
-                //
+            update_table (&sarp,&smac);
 
             if (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
                     || CHECK_FLAG(flg,SHOW_ADJ) != 0)
@@ -159,8 +163,58 @@ main (int argc, char **argv)
 }
 
 int
-update_table ()
+update_table (struct arp_table *arp, struct mac_table *mac)
 {
+    struct arp_table *parp;
+    struct mac_table *pmac;
+    struct arp_table sarp;
+    struct mac_table smac;
+    struct adj_table sadj;
+    memset (&sarp, 0, sizeof(struct arp_table));
+    memset (&smac, 0, sizeof(struct mac_table));
+    memset (&sadj, 0, sizeof(struct adj_table));
+    parp = look_up_arp (arp);
+    if (parp != NULL)
+        {
 
+            printf ("查找arp成功\n");
+            smac.int_vid = parp->int_vid;
+            strcpy (smac.str_mac, parp->str_mac);
+            pmac = look_up_mac (mac);
+            if (pmac == NULL)
+                {
+                    printf ("查找mac失败\n");
+                    return APP_ERR;
+                }
+        }
+    else
+        {
+            pmac = look_up_mac (mac);
+            if (pmac == NULL)
+                {
+                    printf ("查找mac失败\n");
+                    return APP_ERR;
+                }
+
+        }
+    printf ("查找mac成功\n");
+    strcpy (sadj.str_vrf, parp->str_vrf);
+    strcpy (sadj.str_ip, parp->str_ip);
+    strcpy (sadj.str_mac, parp->str_mac);
+    sadj.int_vid = parp->int_vid;
+    strcpy (sadj.str_interface, pmac->str_interface);
+
+    printf ("%s %s %s %d %s\n", sadj.str_vrf, sadj.str_ip, sadj.str_mac,
+            sadj.int_vid, sadj.str_interface);
+    add_adj_table (&sadj);
+    return APP_SUCC;
+}
+
+int
+puts_adj (FILE *fp)
+{
+    struct adj_table *padj;
+//    padj = look_up_adj ();
+    return APP_SUCC;
 }
 

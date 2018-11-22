@@ -38,7 +38,7 @@ look_up_arp (struct arp_table *s)
     key = get_arp_key (s->str_vrf, s->str_ip);
     if (hlist_empty (&arp_head[key]))
         {
-            printf ("没有该节点！\n");
+//            printf ("没有该节点！\n");
             return NULL;
         }
     hlist_for_each_entry_safe(p, n, &arp_head[key],list)
@@ -66,9 +66,10 @@ add_arp_table (struct arp_table *s)
                 }
             copy_to_arp (p, s);
             hlist_add_head (&p->list, &arp_head[key]);
+            printf("arp添加成功!\n");
             return APP_SUCC;
         }
-    printf ("arp重复值,不再添加!!!\n");
+//    printf ("arp重复值,不再添加!!!\n");
     return APP_ERR;
 }
 

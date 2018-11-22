@@ -40,7 +40,7 @@ look_up_adj (struct adj_table *s)
     key = get_adj_key (s->str_vrf, s->str_ip);
     if (hlist_empty (&adj_head[key]))
         {
-            printf ("没有该节点！\n");
+//            printf ("没有该节点！\n");
             return NULL;
         }
     hlist_for_each_entry_safe(p, n, &adj_head[key],list)
@@ -70,7 +70,7 @@ add_adj_table (struct adj_table *s)
             hlist_add_head (&p->list, &adj_head[key]);
             return APP_SUCC;
         }
-    printf ("adj重复值,不再添加!!!\n");
+//    printf ("adj重复值,不再添加!!!\n");
     return APP_ERR;
 }
 

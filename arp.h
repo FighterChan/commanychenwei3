@@ -20,6 +20,8 @@ struct hlist_head arp_head[HLIST_LEN_MAX];
 
 int
 init_arp_hash (void);
+struct arp_table *
+look_up_arp (struct arp_table *s);
 int
 add_arp_table (struct arp_table *s);
 int
