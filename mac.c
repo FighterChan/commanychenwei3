@@ -65,7 +65,7 @@ add_mac_table (struct mac_table *s)
                 {
                     return APP_ERR;
                 }
-            copy_to_mac (s, p);
+            copy_to_mac (p, s);
             hlist_add_head (&p->list, &mac_head[key]);
             return APP_SUCC;
         }
@@ -80,7 +80,7 @@ del_mac_table (struct mac_table *s)
     struct mac_table *p;
     struct hlist_node *n;
     u32 key;
-    key = get_mac_key (s->str_vrf, s->str_ip);
+    key = get_mac_key (s->int_vid, s->str_mac);
     if (hlist_empty (&mac_head[key]))
         {
             printf ("没有该节点！\n");
@@ -96,7 +96,7 @@ del_mac_table (struct mac_table *s)
 }
 
 int
-free_mac_table (struct hlist_head *head)
+free_mac_table (void)
 {
     struct mac_table *p;
     struct hlist_node *n;
@@ -104,7 +104,7 @@ free_mac_table (struct hlist_head *head)
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            hlist_for_each_entry_safe(p,n,&head[i],list)
+            hlist_for_each_entry_safe(p,n,&mac_head[i],list)
                 {
                     hlist_del (&p->list);
                     free (p);
@@ -121,11 +121,11 @@ get_mac_key (u32 vid, const char *mac)
 }
 
 int
-copy_to_mac (struct mac_table *s, struct mac_table *p)
+copy_to_mac (struct mac_table *p, struct mac_table *s)
 {
 
     p->int_vid = s->int_vid;
     strcpy (p->str_mac, s->str_mac);
-    strcpy(p->str_interface,s->str_interface);
+    strcpy (p->str_interface, s->str_interface);
     return APP_SUCC;
 }

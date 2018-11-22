@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "list.h"
 #include "app.h"
+#include "jhash.h"
 
 struct arp_table
 {
@@ -28,7 +29,7 @@ free_arp_table (void);
 u32
 get_arp_key (const char *vrf, const char *ip);
 int
-copy_to_arp (struct arp_table *s, struct arp_table *p);
+copy_to_arp ( struct arp_table *p,struct arp_table *s);
 
 /* body of arp.h */
 #endif /* _ARP_H_ */

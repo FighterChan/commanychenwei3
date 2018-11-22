@@ -20,38 +20,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-int
-read_cmd (const char *path)
-{
-    char *line = NULL, *tmp_buf;
-    size_t len;
-    ssize_t read;
-    char *name, *value;
-    FILE *fp;
-    fp = fopen (path, "r");
-    if (fp == NULL)
-        {
-            return APP_ERR;
-        }
-    while ((read = getline(&line, &len, fp)) != -1)
-      {
-        tmp_buf = line;
-        name = strsep(&tmp_buf, "=");
-        if (name == NULL)
-          continue;
-        if (strcmp(name, "") == 0)
-          continue;
-        value = strsep(&tmp_buf, "\n");
-        printf("%s ",value);
-      }
-
-    fclose (fp);
-}
-
-struct hlist_head arp_head[HLIST_LEN_MAX];
-struct hlist_head mac_head[HLIST_LEN_MAX];
-struct hlist_head adj_head[HLIST_LEN_MAX];
-
 #if !DEBUG
 
 int flg;
@@ -60,23 +28,13 @@ int
 main (int argc, char **argv)
 {
 
-    u32 arp_key;
-    u32 mac_key;
-    u32 adj_key;
+    struct arp_table sarp;
+    struct mac_table smac;
+    struct adj_table sadj;
 
-    struct arp_table *parp;
-    struct mac_table *pmac;
-    struct adj_table *padj;
-
-    int i;
-    for (i = 0; i < HLIST_LEN_MAX; ++i)
-        {
-            INIT_HLIST_HEAD(&arp_head[i]);
-
-            INIT_HLIST_HEAD(&mac_head[i]);
-
-            INIT_HLIST_HEAD(&adj_head[i]);
-        }
+    memset (&sarp, 0, sizeof(sarp));
+    memset (&smac, 0, sizeof(smac));
+    memset (&sadj, 0, sizeof(sadj));
 
     char cmd[32];
     memset (cmd, 0, sizeof(cmd));
@@ -108,6 +66,10 @@ main (int argc, char **argv)
             return APP_ERR;
         }
 
+    init_arp_hash();
+    init_mac_hash();
+    init_adj_hash();
+
     int nRet;
 
     while (!feof (infp))
@@ -118,29 +80,18 @@ main (int argc, char **argv)
                 {
                     break;
                 }
-#if 1
             if (strcmp (cmd, "add-arp") == 0)
                 {
-                    parp = (struct arp_table *)malloc(sizeof(struct arp_table));
-                    if(parp == NULL) {
-                            retutn APP_ERR;
-                    }
-                    fscanf (infp, "%s%s%s%d", parp->str_vrf, parp->str_ip,
-                            parp->str_mac, parp->int_vid);
-                    arp_key = get_arp_key(parp->str_vrf,parp->str_ip);
-                    add_arp_table (parp, &arp_head[arp_key]);
+                    fscanf (infp, "%s%s%s%d", sarp.str_vrf, sarp.str_ip,
+                            sarp.str_mac, &sarp.int_vid);
+                    add_arp_table (&sarp);
                     SET_FLAG(flg, ADD_ARP);
                 }
             else if (strcmp (cmd, "add-mac") == 0)
                 {
-                    pmac = (struct mac_table *)malloc(sizeof(struct mac_table));
-                        if(pmac == NULL) {
-                                retutn APP_ERR;
-                        }
-                    fscanf (infp, "%d%s%s", pmac->ini_vid, pmac->str_mac,
-                            pmac->str_interface);
-                    mac_key = get_mac_key(pmac->ini_vid,pmac->str_mac);
-                    add_mac_table (pmac, &mac_head[mac_key]);
+                    fscanf (infp, "%d%s%s", &smac.int_vid, smac.str_mac,
+                            smac.str_interface);
+                    add_mac_table (&smac);
                     SET_FLAG(flg, ADD_MAC);
                 }
 #if 0
@@ -183,12 +134,12 @@ main (int argc, char **argv)
                     SET_FLAG(flg, SHOW_LOG);
                 }
 
-            update_daj_node (outfp, &arp_head, &mac_head, &adj_head);
+                //
 
             if (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
                     || CHECK_FLAG(flg,SHOW_ADJ) != 0)
                 {
-                    write_file (outfp, vrf, &adj_head);
+//                    write_file (outfp, vrf, &adj_head);
                     memset (vrf, 0, sizeof(vrf));
                 }
 
@@ -201,8 +152,15 @@ main (int argc, char **argv)
 
     fclose (infp);
     fclose (outfp);
+    free_arp_table ();
+    free_mac_table ();
+    free_adj_table ();
     return APP_SUCC;
 }
 
-#endif
+int
+update_table ()
+{
+
+}
 

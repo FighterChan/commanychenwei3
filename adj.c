@@ -66,7 +66,7 @@ add_adj_table (struct adj_table *s)
                 {
                     return APP_ERR;
                 }
-            copy_to_adj (s, p);
+            copy_to_adj (p, s);
             hlist_add_head (&p->list, &adj_head[key]);
             return APP_SUCC;
         }
@@ -105,7 +105,7 @@ free_adj_table (void)
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            hlist_for_each_entry_safe(p,n,&head[i],list)
+            hlist_for_each_entry_safe(p,n,&adj_head[i],list)
                 {
                     hlist_del (&p->list);
                     free (p);
@@ -120,6 +120,18 @@ get_adj_key (const char *vrf, const char *ip)
 {
     return (jhash_2words (jhash (vrf, strlen (vrf), 0),
                           jhash (ip, strlen (ip), 0), 0) % HLIST_LEN_MAX);
+}
+
+int
+copy_to_adj ( struct adj_table *p,struct adj_table *s)
+{
+
+    strcpy (p->str_vrf, s->str_vrf);
+    strcpy (p->str_ip, s->str_ip);
+    p->int_vid = s->int_vid;
+    strcpy (p->str_mac, s->str_mac);
+    strcpy (p->str_interface, s->str_interface);
+    return APP_SUCC;
 }
 
 /*

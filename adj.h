@@ -7,7 +7,8 @@
 #include "mac.h"
 #include <stdio.h>
 
-struct adj_table {
+struct adj_table
+{
     char str_vrf[VRF_LEN_MAX];
     char str_ip[IP_LEN_MAX];
     char str_mac[MAC_LEN_MAX];
@@ -22,23 +23,24 @@ struct hlist_head adj_head[HLIST_LEN_MAX];
 int
 init_adj_hash (void);
 int
-add_adj_table(struct adj_table *s);
+add_adj_table (struct adj_table *s);
 int
-del_adj_table(struct arp_table *s);
+del_adj_table (struct adj_table *s);
 
 int
-free_adj_table(void);
+free_adj_table (void);
 
 int
-del_table_by_vrf(FILE *fp, struct arp_table *s, struct list_head *arp_head,
-        struct list_head *adj_head);
+del_table_by_vrf (FILE *fp, struct arp_table *s, struct list_head *arp_head,
+                  struct list_head *adj_head);
 int
-del_table_by_vid(FILE *fp, struct mac_table *s, struct list_head *mac_head,
-        struct list_head *adj_head);
-
+del_table_by_vid (FILE *fp, struct mac_table *s, struct list_head *mac_head,
+                  struct list_head *adj_head);
 u32
 get_adj_key (const char *vrf, const char *ip);
 
+int
+copy_to_adj (struct adj_table *p, struct adj_table *s);
 
 /* body of adj.h */
 #endif /* _ADJ_H_ */

@@ -48,6 +48,7 @@ look_up_arp (struct arp_table *s)
         }
     return NULL;
 }
+
 int
 add_arp_table (struct arp_table *s)
 {
@@ -63,11 +64,11 @@ add_arp_table (struct arp_table *s)
                 {
                     return APP_ERR;
                 }
-            copy_to_arp (s, p);
+            copy_to_arp (p, s);
             hlist_add_head (&p->list, &arp_head[key]);
             return APP_SUCC;
         }
-    printf ("重复值,不再添加!!!\n");
+    printf ("arp重复值,不再添加!!!\n");
     return APP_ERR;
 }
 
@@ -102,7 +103,7 @@ free_arp_table (void)
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            hlist_for_each_entry_safe(p,n,&head[i],list)
+            hlist_for_each_entry_safe(p,n,&arp_head[i],list)
                 {
                     hlist_del (&p->list);
                     free (p);
@@ -120,7 +121,7 @@ get_arp_key (const char *vrf, const char *ip)
 }
 
 int
-copy_to_arp (struct arp_table *s, struct arp_table *p)
+copy_to_arp (struct arp_table *p, struct arp_table *s)
 {
 
     strcpy (p->str_vrf, s->str_vrf);

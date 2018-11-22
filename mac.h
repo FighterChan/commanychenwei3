@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "app.h"
 #include "list.h"
+#include "jhash.h"
 
 struct mac_table
 {
@@ -27,7 +28,7 @@ free_mac_table (void);
 u32
 get_mac_key (u32 vid, const char *mac);
 int
-copy_to_mac (struct arp_table *s, struct arp_table *p);
+copy_to_mac ( struct mac_table *p,struct mac_table *s);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */
