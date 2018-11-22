@@ -8,20 +8,26 @@
 
 struct mac_table
 {
-    int ini_vid;
+    int int_vid;
     char str_mac[MAC_LEN_MAX];
     char str_interface[INTF_LEN_MAX];
     struct hlist_node list;
 };
 
+struct hlist_head mac_head[HLIST_LEN_MAX];
+
 int
-add_mac_table (struct mac_table *s, struct hlist_head *head);
+init_mac_hash (void);
 int
-del_mac_table (struct mac_table *s, struct hlist_head *head);
+add_mac_table (struct mac_table *s);
 int
-free_mac_table (struct hlist_head *head);
+del_mac_table (struct mac_table *s);
+int
+free_mac_table (void);
 u32
 get_mac_key (u32 vid, const char *mac);
+int
+copy_to_mac (struct arp_table *s, struct arp_table *p);
 
 /* body of mac.h */
 #endif /* _MAC_H_ */

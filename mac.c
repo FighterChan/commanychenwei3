@@ -19,35 +19,80 @@
 #include <string.h>
 
 int
-add_arp_table (struct mac_table *s, struct hlist_head *head)
+init_mac_hash (void)
 {
-    hlist_add_head (&s->list, head);
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            INIT_HLIST_HEAD(&mac_head[i]);
+        }
     return APP_SUCC;
 }
 
+struct mac_table *
+look_up_mac (struct mac_table *s)
+{
+
+    struct mac_table *p;
+    struct hlist_node *n;
+    u32 key;
+    key = get_mac_key (s->int_vid, s->str_mac);
+    if (hlist_empty (&mac_head[key]))
+        {
+            printf ("没有该节点！\n");
+            return NULL;
+        }
+    hlist_for_each_entry_safe(p, n, &mac_head[key],list)
+        {
+            /*加上某个条件后*/
+            return p;
+        }
+    return NULL;
+}
+
 int
-del_mac_table (struct mac_table *s, struct hlist_head *head)
+add_mac_table (struct mac_table *s)
 {
     struct mac_table *p;
     struct hlist_node *n;
     u32 key;
-    key = get_mac_key (s->ini_vid, s->str_mac);
-    if (hlist_empty (&head[key]))
+    key = get_mac_key (s->int_vid, s->str_mac);
+    p = look_up_mac (s);
+    if (p == NULL)
         {
-            printf ("data not exist \n");
+            p = (struct mac_table *) malloc (sizeof(struct mac_table));
+            if (p == NULL)
+                {
+                    return APP_ERR;
+                }
+            copy_to_mac (s, p);
+            hlist_add_head (&p->list, &mac_head[key]);
+            return APP_SUCC;
+        }
+    printf ("mac重复值,不再添加!!!\n");
+    return APP_ERR;
+}
+
+int
+del_mac_table (struct mac_table *s)
+{
+
+    struct mac_table *p;
+    struct hlist_node *n;
+    u32 key;
+    key = get_mac_key (s->str_vrf, s->str_ip);
+    if (hlist_empty (&mac_head[key]))
+        {
+            printf ("没有该节点！\n");
             return APP_ERR;
         }
-    else
+    hlist_for_each_entry_safe(p, n, &mac_head[key],list)
         {
-            hlist_for_each_entry_safe(p,n,&head[key],list)
-                {
-                    hlist_del (&p->list);
-                    free(p);
-                    p = NULL;
-                }
+            /*加上某个条件后*/
+            hlist_del (&p->list);
+            return APP_SUCC;
         }
-
-    return APP_SUCC;
+    return APP_ERR;
 }
 
 int
@@ -72,5 +117,15 @@ free_mac_table (struct hlist_head *head)
 u32
 get_mac_key (u32 vid, const char *mac)
 {
-    return (jhash_2words (vid, jhash (mac, strlen (mac), 0)) % HLIST_LEN_MAX);
+    return (jhash_2words (vid, jhash (mac, strlen (mac), 0), 0) % HLIST_LEN_MAX);
+}
+
+int
+copy_to_mac (struct mac_table *s, struct mac_table *p)
+{
+
+    p->int_vid = s->int_vid;
+    strcpy (p->str_mac, s->str_mac);
+    strcpy(p->str_interface,s->str_interface);
+    return APP_SUCC;
 }
