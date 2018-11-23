@@ -72,7 +72,7 @@ add_arp_table (struct arp_table *s)
     else
         {
             /*更新*/
-//            copy_to_arp (p, s);
+            copy_to_arp (p, s);
             return APP_SUCC;
         }
 //    printf ("arp重复值,不再添加!!!\n");

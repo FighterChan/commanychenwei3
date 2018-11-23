@@ -73,7 +73,7 @@ add_mac_table (struct mac_table *s)
     else
         {
             /*更新*/
-//            copy_to_mac (p, s);
+            copy_to_mac (p, s);
             return APP_SUCC;
         }
 //    printf ("mac重复值,不再添加!!!\n");
