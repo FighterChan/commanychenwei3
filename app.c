@@ -109,25 +109,29 @@ main (int argc, char **argv)
                 {
                     fscanf (infp, "%s%s", sarp.str_vrf, sarp.str_ip);
                     del_arp_table (&sarp);
+                    arp_update_table (&sarp);
                     SET_FLAG(flg, DEL_ARP);
                 }
             else if (strcmp (cmd, "del-mac") == 0)
                 {
                     fscanf (infp, "%d%s", &smac.int_vid, smac.str_mac);
                     del_mac_table (&smac);
+                    mac_update_table (&smac);
                     SET_FLAG(flg, DEL_MAC);
                 }
-#if 0
+#if 1
             else if (strcmp (cmd, "del-vrf") == 0)
                 {
                     fscanf (infp, "%s", sarp.str_vrf);
-                    del_table_by_vrf (outfp, &sarp, &arp_head, &adj_head);
+                    del_arp_table_by_vrf (sarp.str_vrf);
+                    arp_update_table (&sarp);
                     SET_FLAG(flg, DEL_VRF);
                 }
             else if (strcmp (cmd, "del-vid") == 0)
                 {
-                    fscanf (infp, "%s", smac.str_vid);
-                    del_table_by_vid (outfp, &smac, &mac_head, &adj_head);
+                    fscanf (infp, "%d", &smac.int_vid);
+                    del_mac_table_by_vid(smac.int_vid);
+                    mac_update_table (&smac);
                     SET_FLAG(flg, DEL_VID);
                 }
 #endif

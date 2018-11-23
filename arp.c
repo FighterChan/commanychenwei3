@@ -107,6 +107,36 @@ del_arp_table (struct arp_table *s)
 }
 
 int
+del_arp_table_by_vrf (const char *vrf)
+{
+
+    struct arp_table *p;
+    struct arp_table *n;
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+
+            if (!list_empty (&arp_head[i]))
+                {
+                    list_for_each_entry_safe(p, n, &arp_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (strcmp (p->str_vrf, vrf) == 0)
+                                {
+                                    printf("%s\n",p->str_vrf);
+                                    list_del_init (&p->list);
+                                    free(p);
+                                    p = NULL;
+                                }
+                            return APP_SUCC;
+                        }
+                }
+
+        }
+    return APP_ERR;
+}
+
+int
 free_arp_table (void)
 {
     struct arp_table *p;

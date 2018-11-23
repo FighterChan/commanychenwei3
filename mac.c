@@ -24,7 +24,7 @@ init_mac_hash (void)
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            INIT_LIST_HEAD(&mac_head[i]);
+            INIT_LIST_HEAD (&mac_head[i]);
         }
     return APP_SUCC;
 }
@@ -68,8 +68,7 @@ add_mac_table (struct mac_table *s)
             copy_to_mac (p, s);
             list_add_tail (&p->list, &mac_head[key]);
 //            printf ("mac添加成功!\n");
-            printf ("%s %d %s\n",
-                    p->str_mac,p->int_vid,p->str_interface);
+            printf ("%s %d %s\n", p->str_mac, p->int_vid, p->str_interface);
             return APP_SUCC;
         }
     else
@@ -105,6 +104,36 @@ del_mac_table (struct mac_table *s)
 }
 
 int
+del_mac_table_by_vid (int vid)
+{
+
+    struct mac_table *p;
+    struct mac_table *n;
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+
+            if (!list_empty (&mac_head[i]))
+                {
+                    list_for_each_entry_safe(p, n, &mac_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (p->int_vid == vid)
+                                {
+                                    printf ("%d\n", p->int_vid);
+                                    list_del_init (&p->list);
+                                    free(p);
+                                    p = NULL;
+                                }
+                            return APP_SUCC;
+                        }
+                }
+
+        }
+    return APP_ERR;
+}
+
+int
 free_mac_table (void)
 {
     struct mac_table *p;
@@ -126,7 +155,8 @@ free_mac_table (void)
 u32
 get_mac_key (u32 vid, const char *mac)
 {
-    return (jhash_2words (vid, jhash (mac, strlen (mac), HASH_INITVAL), HASH_INITVAL) % HLIST_LEN_MAX);
+    return (jhash_2words (vid, jhash (mac, strlen (mac), HASH_INITVAL),
+    HASH_INITVAL) % HLIST_LEN_MAX);
 }
 
 int
