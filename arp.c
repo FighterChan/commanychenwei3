@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 int
 init_arp_hash (void)
@@ -23,7 +24,7 @@ init_arp_hash (void)
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            INIT_HLIST_HEAD(&arp_head[i]);
+            INIT_LIST_HEAD (&arp_head[i]);
         }
     return APP_SUCC;
 }
@@ -33,15 +34,15 @@ look_up_arp (struct arp_table *s)
 {
 
     struct arp_table *p;
-    struct hlist_node *n;
+    struct arp_table *n;
     u32 key;
     key = get_arp_key (s->str_vrf, s->str_ip);
-    if (hlist_empty (&arp_head[key]))
+    if (list_empty (&arp_head[key]))
         {
 //            printf ("没有该节点！\n");
             return NULL;
         }
-    hlist_for_each_entry_safe(p, n, &arp_head[key],list)
+    list_for_each_entry_safe(p, n, &arp_head[key],list)
         {
             /*加上某个条件后*/
             return p;
@@ -52,11 +53,11 @@ look_up_arp (struct arp_table *s)
 int
 add_arp_table (struct arp_table *s)
 {
-    struct arp_table *p;
-    struct hlist_node *n;
+    struct arp_table *p = NULL;
+    struct arp_table *n;
     u32 key;
     key = get_arp_key (s->str_vrf, s->str_ip);
-    p = look_up_arp (s);
+//    p = look_up_arp (s);
     if (p == NULL)
         {
             p = (struct arp_table *) malloc (sizeof(struct arp_table));
@@ -65,17 +66,21 @@ add_arp_table (struct arp_table *s)
                     return APP_ERR;
                 }
             copy_to_arp (p, s);
-            hlist_add_head (&p->list, &arp_head[key]);
+            list_add_tail (&p->list, &arp_head[key]);
 //            printf ("arp添加成功!\n");
+            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
+                    p->int_vid);
             return APP_SUCC;
         }
     else
         {
             /*更新*/
             copy_to_arp (p, s);
+            printf ("arp重复值,不再添加!!!\n");
+            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
+                    p->int_vid);
             return APP_SUCC;
         }
-//    printf ("arp重复值,不再添加!!!\n");
     return APP_ERR;
 }
 
@@ -84,18 +89,18 @@ del_arp_table (struct arp_table *s)
 {
 
     struct arp_table *p;
-    struct hlist_node *n;
+    struct arp_table *n;
     u32 key;
     key = get_arp_key (s->str_vrf, s->str_ip);
-    if (hlist_empty (&arp_head[key]))
+    if (list_empty (&arp_head[key]))
         {
 //            printf ("没有该节点！\n");
             return APP_ERR;
         }
-    hlist_for_each_entry_safe(p, n, &arp_head[key],list)
+    list_for_each_entry_safe(p, n, &arp_head[key],list)
         {
             /*加上某个条件后*/
-            hlist_del (&p->list);
+            list_del_init (&p->list);
             return APP_SUCC;
         }
     return APP_ERR;
@@ -105,14 +110,14 @@ int
 free_arp_table (void)
 {
     struct arp_table *p;
-    struct hlist_node *n;
+    struct arp_table *n;
 
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            hlist_for_each_entry_safe(p,n,&arp_head[i],list)
+            list_for_each_entry_safe(p,n,&arp_head[i],list)
                 {
-                    hlist_del (&p->list);
+                    list_del_init (&p->list);
                     free (p);
                     p = NULL;
                 }
@@ -123,8 +128,8 @@ free_arp_table (void)
 u32
 get_arp_key (const char *vrf, const char *ip)
 {
-    return (jhash_2words (jhash (vrf, strlen (vrf), 0),
-                          jhash (ip, strlen (ip), 0), 0) % HLIST_LEN_MAX);
+    return (jhash_2words (jhash (vrf, strlen (vrf), HASH_INITVAL),
+                          ntohl (inet_addr (ip)), HASH_INITVAL) % HLIST_LEN_MAX);
 }
 
 int

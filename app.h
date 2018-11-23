@@ -1,6 +1,7 @@
 /* /chenwei3/app.h */
 #ifndef _APP_H_
 #define _APP_H_
+#include "jhash.h"
 
 #define DEBUG (0)
 
@@ -17,6 +18,8 @@
 
 /*链表数组最大长度*/
 #define HLIST_LEN_MAX  (1024)
+/*HASH*/
+#define HASH_INITVAL   (16)
 
 extern int flg;
 /*各个命令标志位*/
@@ -38,6 +41,9 @@ enum
 #define CHECK_FLAG_ALL(x)	(x != 0)
 #define CLEAR_FLAG(x,y)		(x &= ~(y))
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
+
+u32
+get_key (u32 vid, const char *mac);
 
 /* body of app.h */
 #endif /* _APP_H_ */

@@ -15,10 +15,10 @@ struct adj_table
     int int_vid;
     char str_interface[INTF_LEN_MAX];
     int counter;
-    struct hlist_node list;
+    struct list_head list;
 };
 
-struct hlist_head adj_head[HLIST_LEN_MAX];
+struct list_head adj_head[HLIST_LEN_MAX];
 
 int
 init_adj_hash (void);

@@ -13,10 +13,10 @@ struct arp_table
     char str_ip[IP_LEN_MAX];
     char str_mac[MAC_LEN_MAX];
     int int_vid;
-    struct hlist_node list;
+    struct list_head list;
 };
 
-struct hlist_head arp_head[HLIST_LEN_MAX];
+struct list_head arp_head[HLIST_LEN_MAX];
 
 int
 init_arp_hash (void);

@@ -12,10 +12,10 @@ struct mac_table
     int int_vid;
     char str_mac[MAC_LEN_MAX];
     char str_interface[INTF_LEN_MAX];
-    struct hlist_node list;
+    struct list_head list;
 };
 
-struct hlist_head mac_head[HLIST_LEN_MAX];
+struct list_head mac_head[HLIST_LEN_MAX];
 
 int
 init_mac_hash (void);

@@ -11,23 +11,29 @@
  */
 
 #include <stdio.h>
-int buf[] =
-    { 1, 2, 3 };
+#include <string.h>
+#include "jhash.h"
+#include <arpa/inet.h>
 
-int
-fun (int *d)
+u32
+get_arp_key (const char *vrf, const char *ip)
 {
-
-    int i;
-    for (i = 0; i < sizeof(buf)/sizeof(char); ++i)
-        {
-            printf ("%d\n", d[i]);
-        }
-    return 0;
+    return (jhash_2words (jhash (vrf, strlen (vrf), 0),
+                          ntohl (inet_addr (ip)), 0) % 1024);
 }
+
+
+char vrf[] = "abc";
+char ip[] = "10.0.3.1";
+
+char vrf1[] = "abc";
+char ip1[] = "10.0.3.10";
+
 int
 main (int argc, char **argv)
 {
-    fun (buf);
+    printf("hash : %ld\n",get_arp_key(vrf,ip));
+    printf("hash1 : %ld\n",get_arp_key(vrf1,ip1));
+
     return 0;
 }

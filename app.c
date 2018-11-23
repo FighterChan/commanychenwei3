@@ -23,7 +23,9 @@
 #if !DEBUG
 
 int
-update_table (struct arp_table *arp, struct mac_table *mac);
+arp_update_table (struct arp_table *arp);
+int
+mac_update_table (struct mac_table *mac);
 int
 puts_adj (FILE *fp);
 
@@ -91,6 +93,7 @@ main (int argc, char **argv)
                     fscanf (infp, "%s%s%s%d", sarp.str_vrf, sarp.str_ip,
                             sarp.str_mac, &sarp.int_vid);
                     add_arp_table (&sarp);
+                    arp_update_table (&sarp);
                     SET_FLAG(flg, ADD_ARP);
                 }
             else if (strcmp (cmd, "add-mac") == 0)
@@ -98,21 +101,23 @@ main (int argc, char **argv)
                     fscanf (infp, "%d%s%s", &smac.int_vid, smac.str_mac,
                             smac.str_interface);
                     add_mac_table (&smac);
+                    mac_update_table (&smac);
                     SET_FLAG(flg, ADD_MAC);
                 }
-#if 0
+
             else if (strcmp (cmd, "del-arp") == 0)
                 {
                     fscanf (infp, "%s%s", sarp.str_vrf, sarp.str_ip);
-                    del_arp_table (&sarp, &arp_head);
+                    del_arp_table (&sarp);
                     SET_FLAG(flg, DEL_ARP);
                 }
             else if (strcmp (cmd, "del-mac") == 0)
                 {
-                    fscanf (infp, "%s%s", smac.str_vid, smac.str_mac);
-                    del_mac_table (&smac, &mac_head);
+                    fscanf (infp, "%d%s", &smac.int_vid, smac.str_mac);
+                    del_mac_table (&smac);
                     SET_FLAG(flg, DEL_MAC);
                 }
+#if 0
             else if (strcmp (cmd, "del-vrf") == 0)
                 {
                     fscanf (infp, "%s", sarp.str_vrf);
@@ -140,7 +145,7 @@ main (int argc, char **argv)
                     SET_FLAG(flg, SHOW_LOG);
                 }
 
-            update_table (&sarp, &smac);
+//            update_table (&sarp, &smac);
 
             if (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
                     || CHECK_FLAG(flg,SHOW_ADJ) != 0)
@@ -165,76 +170,84 @@ main (int argc, char **argv)
 }
 
 int
-update_table (struct arp_table *arp, struct mac_table *mac)
+arp_update_table (struct arp_table *arp)
 {
     struct arp_table *parp;
-    struct hlist_node *narp;
+    struct arp_table *narp;
     struct mac_table *pmac;
-    struct arp_table sarp;
-    struct mac_table smac;
+    struct mac_table *nmac;
     struct adj_table sadj;
-    memset (&sarp, 0, sizeof(struct arp_table));
-    memset (&smac, 0, sizeof(struct mac_table));
+    int mac_key;
     memset (&sadj, 0, sizeof(struct adj_table));
-    int i;
-    for (int i = 0; i < HLIST_LEN_MAX; ++i)
+
+    parp = look_up_arp (arp);
+    if (parp == NULL)
         {
-            hlist_for_each_entry_safe(parp,narp,&arp_head[i],list)
+            return APP_ERR;
+        }
+
+    mac_key = get_mac_key (parp->int_vid, parp->str_mac);
+
+    list_for_each_entry_safe(pmac,nmac,&mac_head[mac_key],list)
+        {
+
                 {
-                    if (hlist_empty (&arp_head[i]))
+                    strcpy (sadj.str_vrf, parp->str_vrf);
+                    strcpy (sadj.str_ip, parp->str_ip);
+                    strcpy (sadj.str_mac, parp->str_mac);
+                    sadj.int_vid = parp->int_vid;
+                    strcpy (sadj.str_interface, pmac->str_interface);
+                    add_adj_table (&sadj);
+                    memset (&sadj, 0, sizeof(struct adj_table));
+                }
+        }
+
+    return APP_SUCC;
+}
+
+int
+mac_update_table (struct mac_table *mac)
+{
+    struct arp_table *parp;
+    struct arp_table *narp;
+    struct mac_table *pmac;
+    struct mac_table *nmac;
+    struct adj_table sadj;
+    int arp_key;
+    memset (&sadj, 0, sizeof(struct adj_table));
+
+    pmac = look_up_mac (mac);
+    if (pmac == NULL)
+        {
+            return APP_ERR;
+        }
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            if (!list_empty (&arp_head[i]))
+                {
+                    list_for_each_entry_safe(parp,narp,&arp_head[i],list)
                         {
 
-                        }
-                    else
-                        {
-                            smac.int_vid = parp->int_vid;
-                            strcpy (smac.str_mac, parp->str_mac);
-                            pmac = look_up_mac (&smac);
-                            memset (&smac, 0, sizeof(struct mac_table));
-                            if (pmac != NULL)
+                            if (pmac->int_vid == parp->int_vid
+                                    && strcmp (pmac->str_mac, parp->str_mac)
+                                            == 0)
+//                    arp_key = get_arp_key (parp->str_vrf, parp->str_ip);
+//                    if (i == arp_key)
                                 {
-//                                    printf ("查找mac成功\n");
                                     strcpy (sadj.str_vrf, parp->str_vrf);
                                     strcpy (sadj.str_ip, parp->str_ip);
                                     strcpy (sadj.str_mac, parp->str_mac);
                                     sadj.int_vid = parp->int_vid;
                                     strcpy (sadj.str_interface,
                                             pmac->str_interface);
-
-//                                    printf ("%s %s %s %d %s\n", sadj.str_vrf,
-//                                            sadj.str_ip, sadj.str_mac,
-//                                            sadj.int_vid, sadj.str_interface);
                                     add_adj_table (&sadj);
                                     memset (&sadj, 0, sizeof(struct adj_table));
                                 }
                         }
                 }
-        }
 
-//    parp = look_up_arp (arp);
-//    if (parp != NULL)
-//        {
-//
-//            printf ("查找arp成功\n");
-//            smac.int_vid = parp->int_vid;
-//            strcpy (smac.str_mac, parp->str_mac);
-//            pmac = look_up_mac (&smac);
-//            if (pmac == NULL)
-//                {
-//                    printf ("查找mac失败\n");
-//                    return APP_ERR;
-//                }
-//        }
-//    else
-//        {
-//            pmac = look_up_mac (mac);
-//            if (pmac == NULL)
-//                {
-//                    printf ("查找mac失败\n");
-//                    return APP_ERR;
-//                }
-//
-//        }
+        }
 
     return APP_SUCC;
 }
@@ -243,24 +256,28 @@ int
 puts_adj (FILE *fp)
 {
     struct adj_table *padj;
-    struct hlist_node *nadj;
+    struct adj_table *nadj;
     int i;
-    for (int i = 0; i < HLIST_LEN_MAX; ++i)
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            hlist_for_each_entry_safe(padj,nadj,&adj_head[i],list)
+            if (!list_empty (&adj_head[i]))
                 {
-                    if (hlist_empty (&adj_head[i]))
+                    list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
                         {
 
-                        }
-                    else
-                        {
                             fprintf (fp, "%s %s %s %d %s\n", padj->str_vrf,
                                      padj->str_ip, padj->str_mac, padj->int_vid,
                                      padj->str_interface);
                         }
                 }
         }
+
     return APP_SUCC;
 }
 
+//u32
+//get_key (u32 vid, const char *mac)
+//{
+//    return (jhash_2words (vid, jhash (mac, strlen (mac), HASH_INITVAL),
+//    HASH_INITVAL) % HLIST_LEN_MAX);
+//}
