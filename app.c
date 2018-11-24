@@ -27,7 +27,7 @@ arp_update_table (struct arp_table *arp);
 int
 mac_update_table (struct mac_table *mac);
 int
-puts_adj (FILE *fp);
+puts_adj (FILE *fp, char *strvrf);
 
 int flg;
 
@@ -43,14 +43,14 @@ main (int argc, char **argv)
     memset (&smac, 0, sizeof(smac));
     memset (&sadj, 0, sizeof(sadj));
 
-    char cmd[32];
+    char cmd[32 + 1];
     memset (cmd, 0, sizeof(cmd));
-
-    char outpath[32];
-    memset (outpath, 0, sizeof(outpath));
 
     char vrf[32 + 1];
     memset (vrf, 0, sizeof(vrf));
+
+    char outpath[32 + 1];
+    memset (outpath, 0, sizeof(outpath));
 
     CLEAR_FLAG_ALL(flg);
 
@@ -138,27 +138,21 @@ main (int argc, char **argv)
             else if (strcmp (cmd, "show-adj-all") == 0)
                 {
                     SET_FLAG(flg, SHOW_ADJ_ALL);
+                    puts_adj (outfp, NULL);
                 }
             else if (strcmp (cmd, "show-adj") == 0)
                 {
                     fscanf (infp, "%s", vrf);
                     SET_FLAG(flg, SHOW_ADJ);
+                    puts_adj (outfp, vrf);
                 }
             else if (strcmp (cmd, "show-log") == 0)
                 {
                     SET_FLAG(flg, SHOW_LOG);
                 }
 
-//            update_table (&sarp, &smac);
-
-            if (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0
-                    || CHECK_FLAG(flg,SHOW_ADJ) != 0)
-                {
-                    puts_adj (outfp);
-                    memset (vrf, 0, sizeof(vrf));
-                }
-
             CLEAR_FLAG(flg, SHOW_ADJ_ALL);
+            memset (vrf, 0, sizeof(vrf));
             memset (cmd, 0, sizeof(cmd));
             memset (&sarp, 0, sizeof(struct arp_table));
             memset (&smac, 0, sizeof(struct mac_table));
@@ -345,24 +339,35 @@ del_table_by_vrf (const char *vrf)
 }
 
 int
-puts_adj (FILE *fp)
+puts_adj (FILE *fp, char *strvrf)
 {
     struct adj_table *padj, *nadj;
     int adj_count;
     adj_count = 0;
     int i;
+    char vrf[32 + 1];
+    memset (vrf, 0, sizeof(vrf));
+    if (vrf != NULL)
+        {
+            conver_vrfname (strvrf, vrf);
+        }
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
             if (!list_empty (&adj_head[i]))
                 {
                     list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
                         {
-                            adj_count++;
+                            if ((CHECK_FLAG(flg,SHOW_ADJ) != 0 && vrf != NULL
+                                    && strcmp (padj->str_vrf, vrf) == 0)
+                                    || (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0))
+                                {
+                                    adj_count++;
+                                }
                         }
                 }
         }
 
-    fprintf(fp,"count:%d\n",adj_count);
+    fprintf (fp, "count:%d\n", adj_count);
 
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
@@ -370,10 +375,16 @@ puts_adj (FILE *fp)
                 {
                     list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
                         {
+                            if ((CHECK_FLAG(flg,SHOW_ADJ) != 0 && vrf != NULL
+                                    && strcmp (padj->str_vrf, vrf) == 0)
+                                    || (CHECK_FLAG(flg,SHOW_ADJ_ALL) != 0))
+                                {
 
-                            fprintf (fp, "%s %s %s %d %s\n", padj->str_vrf,
-                                     padj->str_ip, padj->str_mac, padj->int_vid,
-                                     padj->str_interface);
+                                    fprintf (fp, "%s %s %s %d %s\n",
+                                             padj->str_vrf, padj->str_ip,
+                                             padj->str_mac, padj->int_vid,
+                                             padj->str_interface);
+                                }
                         }
                 }
         }
