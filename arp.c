@@ -68,8 +68,8 @@ add_arp_table (struct arp_table *s)
             copy_to_arp (p, s);
             list_add_tail (&p->list, &arp_head[key]);
 //            printf ("arp添加成功!\n");
-            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
-                    p->int_vid);
+//            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
+//                    p->int_vid);
             return APP_SUCC;
         }
     else
@@ -107,36 +107,6 @@ del_arp_table (struct arp_table *s)
 }
 
 int
-del_arp_table_by_vrf (const char *vrf)
-{
-
-    struct arp_table *p;
-    struct arp_table *n;
-    int i;
-    for (i = 0; i < HLIST_LEN_MAX; ++i)
-        {
-
-            if (!list_empty (&arp_head[i]))
-                {
-                    list_for_each_entry_safe(p, n, &arp_head[i],list)
-                        {
-                            /*加上某个条件后*/
-                            if (strcmp (p->str_vrf, vrf) == 0)
-                                {
-                                    printf("%s\n",p->str_vrf);
-                                    list_del_init (&p->list);
-                                    free(p);
-                                    p = NULL;
-                                }
-                            return APP_SUCC;
-                        }
-                }
-
-        }
-    return APP_ERR;
-}
-
-int
 free_arp_table (void)
 {
     struct arp_table *p;
@@ -159,7 +129,8 @@ u32
 get_arp_key (const char *vrf, const char *ip)
 {
     return (jhash_2words (jhash (vrf, strlen (vrf), HASH_INITVAL),
-                          ntohl (inet_addr (ip)), HASH_INITVAL) % HLIST_LEN_MAX);
+                          jhash (ip, strlen (ip), HASH_INITVAL), HASH_INITVAL)
+            % HLIST_LEN_MAX);
 }
 
 int

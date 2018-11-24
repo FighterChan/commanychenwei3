@@ -26,8 +26,6 @@ add_mac_table (struct mac_table *s);
 int
 del_mac_table (struct mac_table *s);
 int
-del_mac_table_by_vid (int vid);
-int
 free_mac_table (void);
 u32
 get_mac_key (u32 vid, const char *mac);

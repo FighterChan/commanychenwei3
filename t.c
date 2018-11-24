@@ -13,13 +13,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "jhash.h"
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 
 u32
 get_arp_key (const char *vrf, const char *ip)
 {
-    return (jhash_2words (jhash (vrf, strlen (vrf), 0),
-                          ntohl (inet_addr (ip)), 0) % 1024);
+    char str[64];
+    memset(str,0,sizeof(str));
+    sprintf(str,"%s+%s",vrf,ip);
+    return (jhash (str, strlen (str), 0) % 1024);
 }
 
 

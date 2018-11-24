@@ -42,8 +42,10 @@ enum
 #define CLEAR_FLAG(x,y)		(x &= ~(y))
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
 
-u32
-get_key (u32 vid, const char *mac);
+int
+del_table_by_vid (int vid);
+int
+del_table_by_vrf (const char *vrf);
 
 /* body of app.h */
 #endif /* _APP_H_ */

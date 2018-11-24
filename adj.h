@@ -32,12 +32,6 @@ del_adj_table (struct adj_table *s);
 int
 free_adj_table (void);
 
-int
-del_table_by_vrf (FILE *fp, struct arp_table *s, struct list_head *arp_head,
-                  struct list_head *adj_head);
-int
-del_table_by_vid (FILE *fp, struct mac_table *s, struct list_head *mac_head,
-                  struct list_head *adj_head);
 u32
 get_adj_key (const char *vrf, const char *ip);
 

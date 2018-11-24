@@ -123,14 +123,14 @@ main (int argc, char **argv)
             else if (strcmp (cmd, "del-vrf") == 0)
                 {
                     fscanf (infp, "%s", sarp.str_vrf);
-                    del_arp_table_by_vrf (sarp.str_vrf);
+                    del_table_by_vrf (sarp.str_vrf);
                     arp_update_table (&sarp);
                     SET_FLAG(flg, DEL_VRF);
                 }
             else if (strcmp (cmd, "del-vid") == 0)
                 {
                     fscanf (infp, "%d", &smac.int_vid);
-                    del_mac_table_by_vid(smac.int_vid);
+                    del_table_by_vid (smac.int_vid);
                     mac_update_table (&smac);
                     SET_FLAG(flg, DEL_VID);
                 }
@@ -223,6 +223,7 @@ mac_update_table (struct mac_table *mac)
     pmac = look_up_mac (mac);
     if (pmac == NULL)
         {
+            printf ("mac表中找不到该节点!\n");
             return APP_ERR;
         }
     int i;
@@ -257,11 +258,112 @@ mac_update_table (struct mac_table *mac)
 }
 
 int
+del_table_by_vid (int vid)
+{
+
+    struct mac_table *p, *n;
+    struct adj_table *padj, *nadj;
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+
+            if (!list_empty (&mac_head[i]))
+                {
+                    list_for_each_entry_safe(p, n, &mac_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (p->int_vid == vid)
+                                {
+                                    printf ("mac中删除vid = %d\n", p->int_vid);
+                                    list_del_init (&p->list);
+                                    free (p);
+                                    p = NULL;
+                                }
+                        }
+                }
+
+            if (!list_empty (&adj_head[i]))
+                {
+                    list_for_each_entry_safe(padj, nadj, &adj_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (padj->int_vid == vid)
+                                {
+                                    printf ("adj中删除vid = %d\n", padj->int_vid);
+                                    list_del_init (&padj->list);
+                                    free (padj);
+                                    padj = NULL;
+                                }
+                        }
+                }
+
+        }
+    return APP_SUCC;
+}
+
+int
+del_table_by_vrf (const char *vrf)
+{
+
+    struct arp_table *p, *n;
+    struct adj_table *padj, *nadj;
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+
+            if (!list_empty (&arp_head[i]))
+                {
+                    list_for_each_entry_safe(p, n, &arp_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (strcmp (p->str_vrf, vrf) == 0)
+                                {
+                                    printf ("arp中刪除%s\n", p->str_vrf);
+                                    list_del_init (&p->list);
+                                    free (p);
+                                    p = NULL;
+                                }
+                        }
+                }
+            if (!list_empty (&adj_head[i]))
+                {
+                    list_for_each_entry_safe(padj, nadj, &adj_head[i],list)
+                        {
+                            /*加上某个条件后*/
+                            if (strcmp (padj->str_vrf, vrf) == 0)
+                                {
+                                    printf ("adj中刪除%s\n", padj->str_vrf);
+                                    list_del_init (&padj->list);
+                                    free (padj);
+                                    padj = NULL;
+                                }
+                        }
+                }
+
+        }
+    return APP_SUCC;
+}
+
+int
 puts_adj (FILE *fp)
 {
-    struct adj_table *padj;
-    struct adj_table *nadj;
+    struct adj_table *padj, *nadj;
+    int adj_count;
+    adj_count = 0;
     int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
+        {
+            if (!list_empty (&adj_head[i]))
+                {
+                    list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
+                        {
+                            adj_count++;
+                        }
+                }
+        }
+
+    fprintf(fp,"count:%d\n",adj_count);
+
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
             if (!list_empty (&adj_head[i]))
@@ -278,10 +380,3 @@ puts_adj (FILE *fp)
 
     return APP_SUCC;
 }
-
-//u32
-//get_key (u32 vid, const char *mac)
-//{
-//    return (jhash_2words (vid, jhash (mac, strlen (mac), HASH_INITVAL),
-//    HASH_INITVAL) % HLIST_LEN_MAX);
-//}
