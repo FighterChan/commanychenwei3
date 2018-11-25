@@ -23,7 +23,7 @@ struct list_head adj_head[HLIST_LEN_MAX];
 int
 init_adj_hash (void);
 struct adj_table *
-look_up_adj (struct adj_table *s);
+look_up_adj (const char *vrf, const char *ip);
 int
 add_adj_table (struct adj_table *s);
 int

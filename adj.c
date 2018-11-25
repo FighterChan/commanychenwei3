@@ -31,13 +31,13 @@ init_adj_hash (void)
 }
 
 struct adj_table *
-look_up_adj (struct adj_table *s)
+look_up_adj (const char *vrf, const char *ip)
 {
 
     struct adj_table *p;
     struct adj_table *n;
     u32 key;
-    key = get_adj_key (s->str_vrf, s->str_ip);
+    key = get_adj_key (vrf, ip);
     if (list_empty (&adj_head[key]))
         {
 //            printf ("没有该节点！\n");

@@ -88,16 +88,14 @@ add_arp_table (struct arp_table *s)
 int
 del_arp_table (const char *vrf, const char *ip)
 {
-    struct arp_table *parp;
-    struct mac_table *pmac, *nmac;
-    struct adj_table sadj;
+    struct adj_table *padj;
 
-    parp = look_up_arp (vrf, ip);
-    if (parp == NULL)
+    padj = look_up_adj (vrf, ip);
+    if (padj == NULL)
         {
             return APP_ERR;
         }
-    del_adj_table (parp->str_vrf, parp->str_ip);
+    del_adj_table (padj->str_vrf, padj->str_ip);
     return APP_SUCC;
 }
 

@@ -85,29 +85,22 @@ add_mac_table (struct mac_table *s)
 int
 del_mac_table (int vid, const char *mac)
 {
-    struct arp_table *parp,*narp;
-    struct mac_table *pmac;
-    struct adj_table sadj;
-    int arp_key = 0;
-
-    pmac = look_up_mac (vid, mac);
-    if (pmac == NULL)
-        {
-            printf ("mac表中找不到该节点!\n");
-            return APP_ERR;
-        }
+    struct adj_table *padj, *nadj;
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            if (!list_empty (&arp_head[i]))
+            if (!list_empty (&adj_head[i]))
                 {
-                    list_for_each_entry_safe(parp,narp,&arp_head[i],list)
+                    list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
                         {
-                            if (parp->int_vid == pmac->int_vid
-                                    && strcmp (parp->str_mac, pmac->str_mac)
-                                            == 0)
+                            if (padj->int_vid == vid
+                                    && strcmp (padj->str_mac, mac) == 0)
                                 {
-                                    del_adj_table(parp->str_vrf,parp->str_ip);
+                                    printf ("%s %s %s %d %s\n", padj->str_vrf,
+                                            padj->str_ip, padj->str_mac, padj->int_vid,
+                                            padj->str_interface);
+                                    list_del_init (&padj->list);
+                                    free (padj);
                                 }
 
                         }
