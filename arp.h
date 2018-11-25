@@ -21,11 +21,11 @@ struct list_head arp_head[HLIST_LEN_MAX];
 int
 init_arp_hash (void);
 struct arp_table *
-look_up_arp (struct arp_table *s);
+look_up_arp (const char *vrf,const char *ip);
 int
 add_arp_table (struct arp_table *s);
 int
-del_arp_table (struct arp_table *s);
+del_arp_table (const char *vrf, const char *ip);
 int
 free_arp_table (void);
 u32

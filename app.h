@@ -46,6 +46,8 @@ int
 del_table_by_vid (int vid);
 int
 del_table_by_vrf (const char *vrf);
+u32
+get_key (u32 vid, const char *mac);
 
 /* body of app.h */
 #endif /* _APP_H_ */

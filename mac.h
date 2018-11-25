@@ -20,11 +20,11 @@ struct list_head mac_head[HLIST_LEN_MAX];
 int
 init_mac_hash (void);
 struct mac_table *
-look_up_mac (struct mac_table *s);
+look_up_mac (int vid, const char *mac);
 int
 add_mac_table (struct mac_table *s);
 int
-del_mac_table (struct mac_table *s);
+del_mac_table (int vid, const char *mac);
 int
 free_mac_table (void);
 u32

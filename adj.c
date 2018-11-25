@@ -82,13 +82,13 @@ add_adj_table (struct adj_table *s)
 }
 
 int
-del_adj_table (struct adj_table *s)
+del_adj_table (const char *vrf, const char *ip)
 {
 
     struct adj_table *p;
     struct adj_table *n;
     u32 key;
-    key = get_adj_key (s->str_vrf, s->str_ip);
+    key = get_adj_key (vrf, ip);
     if (list_empty (&adj_head[key]))
         {
 //            printf ("没有该节点！\n");
@@ -96,11 +96,13 @@ del_adj_table (struct adj_table *s)
         }
     list_for_each_entry_safe(p, n, &adj_head[key],list)
         {
+            printf ("%s %s %s %d %s\n", p->str_vrf, p->str_ip, p->str_mac,
+                    p->int_vid, p->str_interface);
             /*加上某个条件后*/
             list_del_init (&p->list);
-            return APP_SUCC;
+            free (p);
         }
-    return APP_ERR;
+    return APP_SUCC;
 }
 
 int

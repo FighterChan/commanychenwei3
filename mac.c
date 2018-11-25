@@ -31,13 +31,13 @@ init_mac_hash (void)
 }
 
 struct mac_table *
-look_up_mac (struct mac_table *s)
+look_up_mac (int vid, const char *mac)
 {
 
     struct mac_table *p;
     struct mac_table *n;
     u32 key;
-    key = get_mac_key (s->int_vid, s->str_mac);
+    key = get_mac_key (vid, mac);
     if (list_empty (&mac_head[key]))
         {
 //            printf ("没有该节点！\n");
@@ -83,25 +83,38 @@ add_mac_table (struct mac_table *s)
 }
 
 int
-del_mac_table (struct mac_table *s)
+del_mac_table (int vid, const char *mac)
 {
+    struct arp_table *parp,*narp;
+    struct mac_table *pmac;
+    struct adj_table sadj;
+    int arp_key = 0;
 
-    struct mac_table *p;
-    struct mac_table *n;
-    u32 key;
-    key = get_mac_key (s->int_vid, s->str_mac);
-    if (list_empty (&mac_head[key]))
+    pmac = look_up_mac (vid, mac);
+    if (pmac == NULL)
         {
-//            printf ("没有该节点！\n");
+            printf ("mac表中找不到该节点!\n");
             return APP_ERR;
         }
-    list_for_each_entry_safe(p, n, &mac_head[key],list)
+    int i;
+    for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
-            /*加上某个条件后*/
-            list_del_init (&p->list);
-            return APP_SUCC;
+            if (!list_empty (&arp_head[i]))
+                {
+                    list_for_each_entry_safe(parp,narp,&arp_head[i],list)
+                        {
+                            if (parp->int_vid == pmac->int_vid
+                                    && strcmp (parp->str_mac, pmac->str_mac)
+                                            == 0)
+                                {
+                                    del_adj_table(parp->str_vrf,parp->str_ip);
+                                }
+
+                        }
+                }
         }
-    return APP_ERR;
+
+    return APP_SUCC;
 }
 
 int

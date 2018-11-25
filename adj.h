@@ -27,7 +27,7 @@ look_up_adj (struct adj_table *s);
 int
 add_adj_table (struct adj_table *s);
 int
-del_adj_table (struct adj_table *s);
+del_adj_table (const char *vrf,const char *ip);
 
 int
 free_adj_table (void);

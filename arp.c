@@ -12,6 +12,7 @@
 #include "list.h"
 #include "app.h"
 #include "arp.h"
+#include "adj.h"
 #include "jhash.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,13 +31,13 @@ init_arp_hash (void)
 }
 
 struct arp_table *
-look_up_arp (struct arp_table *s)
+look_up_arp (const char *vrf, const char *ip)
 {
 
     struct arp_table *p;
     struct arp_table *n;
     u32 key;
-    key = get_arp_key (s->str_vrf, s->str_ip);
+    key = get_arp_key (vrf, ip);
     if (list_empty (&arp_head[key]))
         {
 //            printf ("没有该节点！\n");
@@ -56,7 +57,7 @@ add_arp_table (struct arp_table *s)
     struct arp_table *p = NULL;
     struct arp_table *n;
     u32 key;
-    key = get_arp_key (s->str_vrf, s->str_ip);
+    key = get_key (s->int_vid, s->str_mac);
 //    p = look_up_arp (s);
     if (p == NULL)
         {
@@ -77,33 +78,27 @@ add_arp_table (struct arp_table *s)
             /*更新*/
             copy_to_arp (p, s);
             printf ("arp重复值,不再添加!!!\n");
-            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
-                    p->int_vid);
+//            printf ("%s %s %s %d\n", p->str_vrf, p->str_ip, p->str_mac,
+//                    p->int_vid);
             return APP_SUCC;
         }
     return APP_ERR;
 }
 
 int
-del_arp_table (struct arp_table *s)
+del_arp_table (const char *vrf, const char *ip)
 {
+    struct arp_table *parp;
+    struct mac_table *pmac, *nmac;
+    struct adj_table sadj;
 
-    struct arp_table *p;
-    struct arp_table *n;
-    u32 key;
-    key = get_arp_key (s->str_vrf, s->str_ip);
-    if (list_empty (&arp_head[key]))
+    parp = look_up_arp (vrf, ip);
+    if (parp == NULL)
         {
-//            printf ("没有该节点！\n");
             return APP_ERR;
         }
-    list_for_each_entry_safe(p, n, &arp_head[key],list)
-        {
-            /*加上某个条件后*/
-            list_del_init (&p->list);
-            return APP_SUCC;
-        }
-    return APP_ERR;
+    del_adj_table (parp->str_vrf, parp->str_ip);
+    return APP_SUCC;
 }
 
 int
