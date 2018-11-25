@@ -86,7 +86,7 @@ add_arp_table (struct arp_table *s)
 }
 
 int
-del_arp_table (const char *vrf, const char *ip)
+del_arp (const char *vrf, const char *ip)
 {
     struct adj_table *padj;
 

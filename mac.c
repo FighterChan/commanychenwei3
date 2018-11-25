@@ -83,7 +83,7 @@ add_mac_table (struct mac_table *s)
 }
 
 int
-del_mac_table (int vid, const char *mac)
+del_mac (int vid, const char *mac)
 {
     struct adj_table *padj, *nadj;
     int i;

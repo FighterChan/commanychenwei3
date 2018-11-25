@@ -108,13 +108,13 @@ main (int argc, char **argv)
             else if (strcmp (cmd, "del-arp") == 0)
                 {
                     fscanf (infp, "%s%s", sarp.str_vrf, sarp.str_ip);
-                    del_arp_table (sarp.str_vrf,sarp.str_ip);
+                    del_arp (sarp.str_vrf, sarp.str_ip);
                     SET_FLAG(flg, DEL_ARP);
                 }
             else if (strcmp (cmd, "del-mac") == 0)
                 {
                     fscanf (infp, "%d%s", &smac.int_vid, smac.str_mac);
-                    del_mac_table (smac.int_vid,smac.str_mac);
+                    del_mac (smac.int_vid, smac.str_mac);
                     SET_FLAG(flg, DEL_MAC);
                 }
             else if (strcmp (cmd, "del-vrf") == 0)
