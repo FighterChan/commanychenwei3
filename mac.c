@@ -83,24 +83,32 @@ add_mac_table (struct mac_table *s)
 }
 
 int
-del_mac (int vid, const char *mac)
+del_mac (FILE *fp, int vid, const char *mac)
 {
-    struct adj_table *padj, *nadj;
+    struct adj_table *p, *nadj;
     int i;
     for (i = 0; i < HLIST_LEN_MAX; ++i)
         {
             if (!list_empty (&adj_head[i]))
                 {
-                    list_for_each_entry_safe(padj,nadj,&adj_head[i],list)
+                    list_for_each_entry_safe(p,nadj,&adj_head[i],list)
                         {
-                            if (padj->int_vid == vid
-                                    && strcmp (padj->str_mac, mac) == 0)
+                            if (p->int_vid == vid
+                                    && strcmp (p->str_mac, mac) == 0)
                                 {
-                                    printf ("%s %s %s %d %s\n", padj->str_vrf,
-                                            padj->str_ip, padj->str_mac, padj->int_vid,
-                                            padj->str_interface);
-                                    list_del_init (&padj->list);
-                                    free (padj);
+//                                    printf ("%s %s %s %d %s\n", p->str_vrf,
+//                                            p->str_ip, p->str_mac, p->int_vid,
+//                                            p->str_interface);
+                                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
+                                        {
+                                            fprintf (fp, "%s %s %s %s %d %s\n",
+                                                     "del-adj", p->str_vrf,
+                                                     p->str_ip, p->str_mac,
+                                                     p->int_vid,
+                                                     p->str_interface);
+                                        }
+                                    list_del_init (&p->list);
+                                    free (p);
                                 }
 
                         }

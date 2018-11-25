@@ -25,9 +25,9 @@ init_adj_hash (void);
 struct adj_table *
 look_up_adj (const char *vrf, const char *ip);
 int
-add_adj_table (struct adj_table *s);
+add_adj_table (FILE *fp,struct adj_table *s);
 int
-del_adj_table (const char *vrf,const char *ip);
+del_adj_table (FILE *fp,const char *vrf, const char *ip);
 
 int
 free_adj_table (void);

@@ -86,16 +86,16 @@ add_arp_table (struct arp_table *s)
 }
 
 int
-del_arp (const char *vrf, const char *ip)
+del_arp (FILE *fp,const char *vrf, const char *ip)
 {
-    struct adj_table *padj;
+    struct adj_table *p;
 
-    padj = look_up_adj (vrf, ip);
-    if (padj == NULL)
+    p = look_up_adj (vrf, ip);
+    if (p == NULL)
         {
             return APP_ERR;
         }
-    del_adj_table (padj->str_vrf, padj->str_ip);
+    del_adj_table (fp,p->str_vrf, p->str_ip);
     return APP_SUCC;
 }
 

@@ -52,7 +52,7 @@ look_up_adj (const char *vrf, const char *ip)
 }
 
 int
-add_adj_table (struct adj_table *s)
+add_adj_table (FILE *fp, struct adj_table *s)
 {
     struct adj_table *p = NULL;
     struct adj_table *n;
@@ -68,6 +68,12 @@ add_adj_table (struct adj_table *s)
                 }
             copy_to_adj (p, s);
             list_add_tail (&p->list, &adj_head[key]);
+            if (CHECK_FLAG(flg,SHOW_LOG) != 0)
+                {
+                    fprintf (fp, "%s %s %s %s %d %s\n", "add-adj", p->str_vrf,
+                             p->str_ip, p->str_mac, p->int_vid,
+                             p->str_interface);
+                }
 //            printf ("%s %s %s %d %s\n", p->str_vrf, p->str_ip, p->str_mac,
 //                    p->int_vid, p->str_interface);
             return APP_SUCC;
@@ -82,7 +88,7 @@ add_adj_table (struct adj_table *s)
 }
 
 int
-del_adj_table (const char *vrf, const char *ip)
+del_adj_table (FILE *fp, const char *vrf, const char *ip)
 {
 
     struct adj_table *p;
@@ -96,8 +102,14 @@ del_adj_table (const char *vrf, const char *ip)
         }
     list_for_each_entry_safe(p, n, &adj_head[key],list)
         {
-            printf ("%s %s %s %d %s\n", p->str_vrf, p->str_ip, p->str_mac,
-                    p->int_vid, p->str_interface);
+//            printf ("%s %s %s %d %s\n", p->str_vrf, p->str_ip, p->str_mac,
+//                    p->int_vid, p->str_interface);
+            if (CHECK_FLAG(flg,SHOW_LOG) != 0)
+                {
+                    fprintf (fp, "%s %s %s %s %d %s\n", "del-adj", p->str_vrf,
+                             p->str_ip, p->str_mac, p->int_vid,
+                             p->str_interface);
+                }
             /*加上某个条件后*/
             list_del_init (&p->list);
             free (p);

@@ -2,6 +2,7 @@
 #ifndef _APP_H_
 #define _APP_H_
 #include "jhash.h"
+#include <stdio.h>
 
 #define DEBUG (0)
 
@@ -43,9 +44,9 @@ enum
 #define CLEAR_FLAG_ALL(x)	(x &= 0)
 
 int
-del_table_by_vid (int vid);
+del_table_by_vid (FILE *fp, int vid);
 int
-del_table_by_vrf (const char *vrf);
+del_table_by_vrf (FILE *fp, const char *vrf);
 u32
 get_key (u32 vid, const char *mac);
 

@@ -25,7 +25,7 @@ look_up_arp (const char *vrf, const char *ip);
 int
 add_arp_table (struct arp_table *s);
 int
-del_arp (const char *vrf, const char *ip);
+del_arp (FILE *fp,const char *vrf, const char *ip);
 int
 free_arp_table (void);
 u32

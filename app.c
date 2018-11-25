@@ -23,9 +23,9 @@
 #if !DEBUG
 
 int
-arp_update_table (const char *vrf, const char *ip);
+arp_update_table (FILE *fp, const char *vrf, const char *ip);
 int
-mac_update_table (int vid, const char *mac);
+mac_update_table (FILE *fp, int vid, const char *mac);
 int
 puts_adj (FILE *fp, char *strvrf);
 
@@ -93,7 +93,7 @@ main (int argc, char **argv)
                     fscanf (infp, "%s%s%s%d", sarp.str_vrf, sarp.str_ip,
                             sarp.str_mac, &sarp.int_vid);
                     add_arp_table (&sarp);
-                    arp_update_table (sarp.str_vrf, sarp.str_mac);
+                    arp_update_table (outfp, sarp.str_vrf, sarp.str_mac);
                     SET_FLAG(flg, ADD_ARP);
                 }
             else if (strcmp (cmd, "add-mac") == 0)
@@ -101,32 +101,34 @@ main (int argc, char **argv)
                     fscanf (infp, "%d%s%s", &smac.int_vid, smac.str_mac,
                             smac.str_interface);
                     add_mac_table (&smac);
-                    mac_update_table (smac.int_vid, smac.str_mac);
+                    mac_update_table (outfp, smac.int_vid, smac.str_mac);
                     SET_FLAG(flg, ADD_MAC);
                 }
 
             else if (strcmp (cmd, "del-arp") == 0)
                 {
                     fscanf (infp, "%s%s", sarp.str_vrf, sarp.str_ip);
-                    del_arp (sarp.str_vrf, sarp.str_ip);
+                    del_arp (outfp,sarp.str_vrf, sarp.str_ip);
+                    arp_update_table (outfp, sarp.str_vrf, sarp.str_mac);
                     SET_FLAG(flg, DEL_ARP);
                 }
             else if (strcmp (cmd, "del-mac") == 0)
                 {
                     fscanf (infp, "%d%s", &smac.int_vid, smac.str_mac);
-                    del_mac (smac.int_vid, smac.str_mac);
+                    del_mac (outfp,smac.int_vid, smac.str_mac);
+                    mac_update_table (outfp, smac.int_vid, smac.str_mac);
                     SET_FLAG(flg, DEL_MAC);
                 }
             else if (strcmp (cmd, "del-vrf") == 0)
                 {
                     fscanf (infp, "%s", sarp.str_vrf);
-                    del_table_by_vrf (sarp.str_vrf);
+                    del_table_by_vrf (outfp,sarp.str_vrf);
                     SET_FLAG(flg, DEL_VRF);
                 }
             else if (strcmp (cmd, "del-vid") == 0)
                 {
                     fscanf (infp, "%d", &smac.int_vid);
-                    del_table_by_vid (smac.int_vid);
+                    del_table_by_vid (outfp,smac.int_vid);
                     SET_FLAG(flg, DEL_VID);
                 }
             else if (strcmp (cmd, "show-adj-all") == 0)
@@ -162,7 +164,7 @@ main (int argc, char **argv)
 }
 
 int
-arp_update_table (const char *vrf, const char *ip)
+arp_update_table (FILE *fp, const char *vrf, const char *ip)
 {
     struct arp_table *parp;
     struct mac_table *pmac;
@@ -188,14 +190,14 @@ arp_update_table (const char *vrf, const char *ip)
             strcpy (sadj.str_mac, parp->str_mac);
             sadj.int_vid = parp->int_vid;
             strcpy (sadj.str_interface, pmac->str_interface);
-            add_adj_table (&sadj);
+            add_adj_table (fp, &sadj);
             memset (&sadj, 0, sizeof(struct adj_table));
         }
     return APP_SUCC;
 }
 
 int
-mac_update_table (int vid, const char *mac)
+mac_update_table (FILE *fp, int vid, const char *mac)
 {
     struct arp_table *parp;
     struct mac_table *pmac;
@@ -226,7 +228,7 @@ mac_update_table (int vid, const char *mac)
                                     sadj.int_vid = parp->int_vid;
                                     strcpy (sadj.str_interface,
                                             pmac->str_interface);
-                                    add_adj_table (&sadj);
+                                    add_adj_table (fp, &sadj);
                                     memset (&sadj, 0, sizeof(struct adj_table));
                                 }
 
@@ -238,7 +240,7 @@ mac_update_table (int vid, const char *mac)
 }
 
 int
-del_table_by_vid (int vid)
+del_table_by_vid (FILE *fp, int vid)
 {
 
     struct mac_table *p, *n;
@@ -270,6 +272,14 @@ del_table_by_vid (int vid)
                             if (padj->int_vid == vid)
                                 {
 //                                    printf ("adj中删除vid = %d\n", padj->int_vid);
+                                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
+                                        {
+                                            fprintf (fp, "%s %s %s %s %d %s\n",
+                                                     "del-adj", padj->str_vrf,
+                                                     padj->str_ip, padj->str_mac,
+                                                     padj->int_vid,
+                                                     padj->str_interface);
+                                        }
                                     list_del_init (&padj->list);
                                     free (padj);
                                     padj = NULL;
@@ -282,7 +292,7 @@ del_table_by_vid (int vid)
 }
 
 int
-del_table_by_vrf (const char *vrf)
+del_table_by_vrf (FILE *fp, const char *vrf)
 {
 
     struct arp_table *p, *n;
@@ -313,6 +323,14 @@ del_table_by_vrf (const char *vrf)
                             if (strcmp (padj->str_vrf, vrf) == 0)
                                 {
 //                                    printf ("adj中刪除%s\n", padj->str_vrf);
+                                    if (CHECK_FLAG(flg,SHOW_LOG) != 0)
+                                        {
+                                            fprintf (fp, "%s %s %s %s %d %s\n",
+                                                     "del-adj", padj->str_vrf,
+                                                     padj->str_ip, padj->str_mac,
+                                                     padj->int_vid,
+                                                     padj->str_interface);
+                                        }
                                     list_del_init (&padj->list);
                                     free (padj);
                                     padj = NULL;

@@ -24,7 +24,7 @@ look_up_mac (int vid, const char *mac);
 int
 add_mac_table (struct mac_table *s);
 int
-del_mac (int vid, const char *mac);
+del_mac (FILE *fp,int vid, const char *mac);
 int
 free_mac_table (void);
 u32
